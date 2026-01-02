@@ -1,0 +1,87 @@
+/* @import url('https://fonts.googleapis.com/css2?family=Asap:ital,wght@0,100..900;1,100..900&family=Kantumruy+Pro:ital,wght@0,100..700;1,100..700&family=Moul&family=Noto+Serif+Khmer:wght@100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Slab:wght@100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap'); */
+
+@import url('https://fonts.googleapis.com/css2?family=Afacad:ital,wght@0,400..700;1,400..700&family=Hanuman:wght@100..900&family=Kantumruy+Pro:ital,wght@0,100..700;1,100..700&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-dark: #070f2b;
+  --color-warning: #f0b13b;
+  --font-Kantumruy: 'Kantumruy Pro', sans-serif;
+  --font-asap: 'Asap', sans-serif;
+  --font-hanuman: 'Hanuman', serif;
+  --font-open-sans: 'Open Sans', sans-serif;
+  --font-poppins: 'Poppins', sans-serif;
+}
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+#scroll-bar-group:hover > .set-scrollbar::-webkit-scrollbar-thumb {
+  background: #555;
+}
+
+/* styles.css or inside a component's <style> block */
+.set-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.set-scrollbar::-webkit-scrollbar-track {
+  background: transperance;
+}
+/* .set-scrollbar::-webkit-scrollbar-track:hover {
+  background: #333;
+} */
+.set-scrollbar::-webkit-scrollbar-thumb {
+  background-color: transperance;
+  border-radius: 6px;
+}
+.set-scrollbar-hide {
+  -ms-overflow-style: none; /* IE និង Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.set-scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari និង Opera */
+}
+
+/* .label {
+  @apply block mb-1 font-Kantumruy text-slate-600 dark:text-slate-300;
+}
+.input {
+  @apply w-full px-3 py-2 border border-slate-300 dark:border-slate-400
+         rounded-md font-Kantumruy text-slate-700 dark:text-white
+         placeholder:text-slate-400
+         focus:outline-none focus:border-blue-500
+         focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-400;
+} */
+
+.label {
+  @apply block mb-1 font-Kantumruy text-slate-600 dark:text-slate-300;
+}
+.input {
+  @apply w-full px-3 py-2 border rounded-md font-Kantumruy
+         text-slate-700 dark:text-white
+         placeholder:text-slate-400
+         focus:outline-none focus:ring-2;
+}
+.error-text {
+  @apply text-sm text-red-500 mt-1;
+}
+
+/*  */
+.section {
+  @apply bg-white dark:bg-slate-800 rounded-lg p-6 space-y-4;
+}
+.section-title {
+  @apply text-lg font-semibold text-slate-700 dark:text-slate-200;
+}
+.input {
+  @apply w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none;
+}
+.btn-primary {
+  @apply px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700;
+}
+.btn-danger {
+  @apply px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700;
+}
