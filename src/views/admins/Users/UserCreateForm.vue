@@ -1,89 +1,125 @@
 <script setup lang="ts">
-import { CloseIcon } from '@/stores/Icons'
+import { CallIcon, CloseIcon, DateIcon, IdCardIcon, LocationIcon, LockIcon } from '@/stores/Icons'
+import { useUsersStore } from '@/stores/user_store'
+import InputTextField from '@/widgets/InputTextField.vue'
+import { EyeIcon, EyeOffIcon, User2Icon } from '@lucide/vue'
 import { ref } from 'vue'
+
+const userStore = useUsersStore()
 
 /* ================== Emit ================== */
 const emit = defineEmits(['close'])
 
 /* ================== Form ================== */
 const form = ref({
-  idCard: '',
-  firstName: '',
-  lastName: '',
-  username: '',
-  dob: '',
-  phone: '',
-  parentPhone: '',
+  id_card: '',
+  first_name: '',
+  last_name: '',
+  user_name: '',
+  date_of_birth: '',
+  phone_number: '',
+  phone_parent: '',
   address: '',
   major: '',
   year: '',
+  gender: '',
   password: '',
-  passwordConfirm: '',
-  photo: null as File | null,
+  password_confirmation: '',
+  profile_photo_path: null as File | null,
 })
-
-/* ================== Errors ================== */
-const errors = ref<Record<string, string>>({})
 
 /* ================== File ================== */
 const handleFileChange = (e: Event) => {
   const target = e.target as HTMLInputElement
   if (target.files && target.files[0]) {
-    form.value.photo = target.files[0]
+    form.value.profile_photo_path = target.files[0]
   }
 }
 
 /* ================== Validation ================== */
 const validateForm = () => {
-  errors.value = {}
-
-  if (!form.value.idCard) {
-    errors.value.idCard = 'ID Card is required'
+  userStore.isErrors = {
+    phone_number: '',
+    gender: '',
+    first_name: '',
+    last_name: '',
+    user_name: '',
+    email: '',
+    role: '',
+    status: '',
+    bio: '',
+    profile_photo_path: '',
+    info: {
+      id: 0,
+      id_card: '',
+      phone_parent: '',
+      date_of_birth: '',
+      major: '',
+      level: '',
+      year: '',
+      address: '',
+    },
+    password: '',
+    password_confirmation: '',
   }
 
-  if (!form.value.firstName) {
-    errors.value.firstName = 'First name is required'
+  if (!form.value.first_name) {
+    userStore.isErrors.first_name = 'First name is required'
+    return false
   }
 
-  if (!form.value.lastName) {
-    errors.value.lastName = 'Last name is required'
+  if (!form.value.last_name) {
+    userStore.isErrors.last_name = 'Last name is required'
+    return false
   }
 
-  if (!form.value.phone) {
-    errors.value.phone = 'Phone is required'
+  if (!form.value.user_name) {
+    userStore.isErrors.user_name = 'User name is required'
+    return false
+  }
+
+  if (!form.value.id_card) {
+    userStore.isErrors.info.id_card = 'ID Card is required'
+    return false
+  }
+
+  if (!form.value.phone_number) {
+    userStore.isErrors.phone_number = 'Phone is required'
+    return false
   }
 
   if (!form.value.password) {
-    errors.value.password = 'Password is required'
+    userStore.isErrors.password = 'Password is required'
+    return false
   } else if (form.value.password.length < 6) {
-    errors.value.password = 'Password must be at least 6 characters'
+    userStore.isErrors.password = 'Password must be at least 6 characters'
+    return false
   }
 
-  if (!form.value.passwordConfirm) {
-    errors.value.passwordConfirm = 'Password confirmation is required'
-  } else if (form.value.password !== form.value.passwordConfirm) {
-    errors.value.passwordConfirm = 'Passwords do not match'
+  if (!form.value.password_confirmation) {
+    userStore.isErrors.password_confirmation = 'Password confirmation is required'
+    return false
+  } else if (form.value.password !== form.value.password_confirmation) {
+    userStore.isErrors.password_confirmation = 'Passwords do not match'
+    return false
   }
 
-  return Object.keys(errors.value).length === 0
+  return true
 }
 
 /* ================== Submit ================== */
 const submitForm = () => {
   if (!validateForm()) return
 
-  console.log('SUBMIT 👉', form.value)
   // TODO: call API
+  userStore.addUsers(form.value)
 }
 
 /* ================== Input Class ================== */
-const inputClass = (error?: string) => {
-  return [
-    'input',
-    error
-      ? 'border-red-500 focus:ring-red-200'
-      : 'border-slate-300 dark:border-slate-400 focus:border-blue-500 focus:ring-blue-200',
-  ]
+const isShowPassword = ref(false)
+
+const handlePassword = () => {
+  isShowPassword.value = !isShowPassword.value
 }
 </script>
 
@@ -115,83 +151,156 @@ const inputClass = (error?: string) => {
       <hr class="border-slate-200 dark:border-slate-500" />
 
       <!-- Body -->
-      <div class="p-4 overflow-y-auto max-h-[calc(90vh-64px)]">
-        <!-- ID Card -->
-        <div class="mb-4">
-          <label class="label"> ID Card <span class="text-red-500">*</span> </label>
-          <input
-            v-model="form.idCard"
-            type="text"
-            inputmode="numeric"
-            pattern="[0-9]*"
-            placeholder="Enter ID Card number..."
-            :class="inputClass(errors.idCard)"
-          />
-          <p v-if="errors.idCard" class="error-text">{{ errors.idCard }}</p>
-        </div>
-
+      <div class="p-4 overflow-y-auto max-h-[calc(90vh-64px)] space-y-2">
         <!-- Grid -->
-        <div class="grid grid-cols-2 gap-4 max-md:grid-cols-1">
+        <div class="grid grid-cols-3 gap-4 max-md:grid-cols-1">
           <!-- First Name -->
-          <div>
-            <label class="label"> First Name <span class="text-red-500">*</span> </label>
-            <input v-model="form.firstName" type="text" :class="inputClass(errors.firstName)" />
-            <p v-if="errors.firstName" class="error-text">{{ errors.firstName }}</p>
-          </div>
+
+          <InputTextField
+            v-model="form.first_name"
+            :error="userStore.isErrors.first_name"
+            type="text"
+            label="First Name"
+            placeholder="Enter first name"
+            :required="true"
+          >
+            <template #prefix>
+              <component :is="User2Icon" class="w-6 h-6 text-slate-500" />
+            </template>
+          </InputTextField>
+          <!-- End First Name -->
 
           <!-- Last Name -->
-          <div>
-            <label class="label"> Last Name <span class="text-red-500">*</span> </label>
-            <input v-model="form.lastName" type="text" :class="inputClass(errors.lastName)" />
-            <p v-if="errors.lastName" class="error-text">{{ errors.lastName }}</p>
-          </div>
+
+          <InputTextField
+            v-model="form.last_name"
+            :error="userStore.isErrors.last_name"
+            type="text"
+            label="Last Name"
+            placeholder="Enter last name"
+            :required="true"
+          >
+            <template #prefix>
+              <component :is="User2Icon" class="w-6 h-6 text-slate-500" />
+            </template>
+          </InputTextField>
+
+          <!-- End Block Last Name -->
 
           <!-- Username -->
-          <div>
-            <label class="label">User Name</label>
-            <input v-model="form.username" type="text" class="input border-slate-400" />
-          </div>
+          <InputTextField
+            v-model="form.user_name"
+            :error="userStore.isErrors.user_name"
+            type="text"
+            label="User Name"
+            placeholder="Enter user name"
+            :required="true"
+          >
+            <template #prefix>
+              <component :is="User2Icon" class="w-6 h-6 text-slate-500" />
+            </template>
+          </InputTextField>
+          <!-- end User name -->
+
+          <!-- ID Card -->
+          <InputTextField
+            v-model="form.id_card"
+            :error="userStore.isErrors.info.id_card"
+            type="text"
+            label="ID Card"
+            placeholder="Enter ID Card"
+            :required="true"
+          >
+            <template #prefix>
+              <component :is="IdCardIcon" class="w-7 h-7 text-slate-500" />
+            </template>
+          </InputTextField>
+          <!-- End id card -->
 
           <!-- DOB -->
+          <InputTextField
+            v-model="form.date_of_birth"
+            :error="userStore.isErrors.info.date_of_birth"
+            type="date"
+            label="Date of Birth"
+            placeholder="Enter Date of Birth"
+          >
+            <template #prefix>
+              <component :is="DateIcon" class="w-7 h-7 text-slate-500" />
+            </template>
+          </InputTextField>
+
+          <!-- End DOB -->
+          <!-- Gender -->
           <div>
-            <label class="label">Date of Birth</label>
-            <input v-model="form.dob" type="date" class="input border-slate-400" />
+            <label class="label">Gender</label>
+            <select
+              v-model="form.gender"
+              class="p-2 border font-Kantumruy rounded-md dark:bg-slate-500 dark:text-slate-300 w-full outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+              :class="
+                userStore.isErrors.gender
+                  ? 'border-red-500 bg-red-600/10 text-red-500 placeholder:text-red-500'
+                  : 'border-slate-300 bg-slate-50 placeholder:text-slate-400'
+              "
+            >
+              <option value="" :disabled="true">-- Select gender --</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </select>
+            <p v-if="userStore.isErrors.gender" class="error-text">
+              {{ userStore.isErrors.gender }}
+            </p>
           </div>
 
+          <!-- End Gender -->
+        </div>
+
+        <!--  -->
+        <div class="grid grid-cols-2 gap-4 max-md:grid-cols-1">
           <!-- Phone -->
-          <div>
-            <label class="label"> Phone <span class="text-red-500">*</span> </label>
-            <input v-model="form.phone" type="text" :class="inputClass(errors.phone)" />
-            <p v-if="errors.phone" class="error-text">{{ errors.phone }}</p>
-          </div>
+          <InputTextField
+            v-model="form.phone_number"
+            :error="userStore.isErrors.phone_number"
+            type="number"
+            label="Phone Number"
+            placeholder="Enter Phone Number"
+            :required="true"
+          >
+            <template #prefix>
+              <component :is="CallIcon" class="w-6 h-6 text-slate-500" />
+            </template>
+          </InputTextField>
 
           <!-- Parent Phone -->
-          <div>
-            <label class="label">Phone Parent</label>
-            <input v-model="form.parentPhone" type="text" class="input border-slate-400" />
-          </div>
+          <InputTextField
+            v-model="form.phone_parent"
+            :error="userStore.isErrors.info.phone_parent"
+            type="number"
+            label="Phone Parent"
+            placeholder="Enter Phone Parent"
+            :required="true"
+          >
+            <template #prefix>
+              <component :is="CallIcon" class="w-6 h-6 text-slate-500" />
+            </template>
+          </InputTextField>
+        </div>
 
+        <!--  -->
+        <div class="grid grid-cols-2 gap-4 max-md:grid-cols-1">
           <!-- Address -->
-          <div>
-            <label class="label">Address</label>
-            <input v-model="form.address" type="text" class="input border-slate-400" />
-          </div>
-
-          <!-- Major -->
-          <div>
-            <label class="label">Major</label>
-            <select v-model="form.major" class="input border-slate-400">
-              <option value="">Select major</option>
-              <option value="computer">Computer</option>
-              <option value="accounting">Accounting</option>
-            </select>
-          </div>
-
-          <!-- Year -->
-          <div>
-            <label class="label">Year</label>
-            <input v-model="form.year" type="text" class="input border-slate-400" />
-          </div>
+          <InputTextField
+            v-model="form.address"
+            :error="userStore.isErrors.info.address"
+            type="text"
+            label="Address"
+            placeholder="Enter Address"
+          >
+            <template #prefix>
+              <component :is="LocationIcon" class="w-6 h-6 text-slate-500" />
+            </template>
+          </InputTextField>
+          <!-- Address -->
 
           <!-- Photo -->
           <div>
@@ -199,38 +308,65 @@ const inputClass = (error?: string) => {
             <input
               type="file"
               @change="handleFileChange"
+              enctype="multipart/form-data"
               class="w-full px-3 py-2 border border-blue-300 rounded-md font-Kantumruy text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-200"
             />
           </div>
-
-          <!-- Password -->
-          <div>
-            <label class="label"> Password <span class="text-red-500">*</span> </label>
-            <input v-model="form.password" type="password" :class="inputClass(errors.password)" />
-            <p v-if="errors.password" class="error-text">{{ errors.password }}</p>
-          </div>
-
-          <!-- Password Confirm -->
-          <div>
-            <label class="label"> Password Confirm <span class="text-red-500">*</span> </label>
-            <input
-              v-model="form.passwordConfirm"
-              type="password"
-              :class="inputClass(errors.passwordConfirm)"
-            />
-            <p v-if="errors.passwordConfirm" class="error-text">
-              {{ errors.passwordConfirm }}
-            </p>
-          </div>
         </div>
 
+        <!-- Block Password -->
+        <div class="grid grid-cols-2 gap-4 max-md:grid-cols-1">
+          <!-- Password -->
+
+          <InputTextField
+            v-model="form.password"
+            :error="userStore.isErrors.password"
+            type="text"
+            label="Password"
+            placeholder="********"
+            :required="true"
+          >
+            <template #prefix>
+              <component :is="LockIcon" class="w-6 h-6 text-slate-500" />
+            </template>
+
+            <template #suffix>
+              <button type="button" title="Show Password" @click="handlePassword" class="p-1">
+                <component :is="isShowPassword ? EyeIcon : EyeOffIcon" />
+              </button>
+            </template>
+          </InputTextField>
+
+          <!-- End Password -->
+
+          <!-- Password Confirm -->
+          <InputTextField
+            v-model="form.password_confirmation"
+            :error="userStore.isErrors.password_confirmation"
+            type="text"
+            label="Password Confirm"
+            placeholder="********"
+            :required="true"
+          >
+            <template #prefix>
+              <component :is="LockIcon" class="w-6 h-6 text-slate-500" />
+            </template>
+
+            <template #suffix>
+              <button type="button" title="Show Password" @click="handlePassword" class="p-1">
+                <component :is="isShowPassword ? EyeIcon : EyeOffIcon" />
+              </button>
+            </template>
+          </InputTextField>
+        </div>
         <!-- Footer -->
         <div class="flex justify-end mt-6">
           <button
             @click="submitForm"
             class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-md font-Kantumruy"
           >
-            Save
+            <span v-if="userStore.isLoading" class="font-Kantumruy">Loading...</span>
+            <span v-else class="font-Kantumruy">Save</span>
           </button>
         </div>
       </div>

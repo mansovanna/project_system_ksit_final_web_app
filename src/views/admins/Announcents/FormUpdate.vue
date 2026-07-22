@@ -1,65 +1,162 @@
 <script setup lang="ts">
 import { CloseIcon } from '@/stores/Icons'
-import { ref } from 'vue'
+import { useAnnouncementStore } from '@/stores/announcement_store'
+import { computed, onMounted } from 'vue'
+
+const announStore = useAnnouncementStore()
+
+const emit = defineEmits(['close', 'save'])
 
 const props = defineProps({
+  id: {
+    type: String,
+    required: true,
+  },
   title: {
     type: String,
-    reqiured: true,
+    required: true,
   },
-  body: {
+  description: {
     type: String,
-    reqiured: true,
+    required: true,
+  },
+  status: {
+    type: String,
+    required: true,
   },
 })
 
-const formData = ref({
-  title: props.title,
-  body: props.body,
+/* save */
+const handleSave = () => {
+  emit('save', announStore.formData)
+}
+
+onMounted(() => {
+  announStore.formData.title = props.title
+  announStore.formData.description = props.description
+  announStore.formData.status = props.status
 })
+
+const isUnchanged = computed(() => {
+  return (
+    props.title === announStore.formData.title &&
+    props.description === announStore.formData.description &&
+    props.status === announStore.formData.status
+  )
+})
+
+const handleColse = () => {
+  announStore.formData.title = ''
+  announStore.formData.description = ''
+  announStore.formData.status = 'private'
+  emit('close')
+}
 </script>
 
 <template>
-  <div
-    @click="$emit('close')"
-    class="w-full h-screen flex justify-center items-center bg-black/30 fixed top-0 right-0 bottom-0 left-0 z-50"
-  >
-    <div class="w-full max-w-lg bg-white rounded-lg" @click.stop>
-      <div class="flex justify-between items-center p-4">
-        <h1 class="font-Kantumruy font-medium">Update Announcement</h1>
+  <div @click="handleColse" class="fixed inset-0 bg-black/40 flex justify-center items-center z-50">
+    <div
+      class="w-full max-w-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl animate-[fadeIn_.2s_ease]"
+      @click.stop
+    >
+      <!-- header -->
+      <div
+        class="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-400"
+      >
+        <h1 class="text-lg font-semibold font-Kantumruy text-gray-800 dark:text-white">
+          Update Announcement
+        </h1>
+
         <button
-          @click="$emit('close')"
-          class="w-8 h-8 bg-red-500 text-white flex justify-center items-center rounded-full hover:bg-red-400 cursor-pointer"
+          @click="handleColse"
+          class="w-9 h-9 flex items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-400 transition"
         >
           <component :is="CloseIcon" />
         </button>
       </div>
-      <hr class="text-slate-300" />
-      <div class="p-4 flex flex-col gap-6">
-        <div>
-          <label class="font-Kantumruy font-medium">Title</label>
-          <input
-            v-model="formData.title"
-            type="text"
-            class="w-full border border-slate-300 p-2 rounded focus:outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-200 mt-1"
-          />
+
+      <!-- form -->
+      <form @submit.prevent="handleSave" class="p-6 pt-1 space-y-3 w-full">
+        <div
+          v-if="announStore.isErrorMessage.messageError"
+          class="text-red-500 font-Kantumruy text-xs bg-red-500/20 w-full px-2 py-1 mt-2 rounded-lg"
+        >
+          {{ announStore.isErrorMessage.messageError }}
         </div>
-        <div>
-          <label class="font-Kantumruy font-medium">Body</label>
-          <textarea
-            v-model="formData.body"
-            class="w-full border border-slate-300 p-2 rounded focus:outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-200 mt-1"
-          ></textarea>
+        <!-- title -->
+        <div class="flex flex-col gap-1">
+          <label class="text-sm font-medium text-gray-700 font-Kantumruy"> Title </label>
+
+          <input
+            v-model="announStore.formData.title"
+            type="text"
+            placeholder="Enter announcement title..."
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition"
+            :class="announStore.isErrorMessage.title ? 'border-red-400' : ''"
+          />
+          <span class="text-red-500 text-xs font-Kantumruy">{{
+            announStore.isErrorMessage.title
+          }}</span>
         </div>
 
-        <div class="w-full flex justify-end items-center">
-          <button
-            class="px-6 py-2 bg-blue-600 text-white font-Kantumruy rounded-md hover:bg-blue-500 cursor-pointer"
+        <!-- description -->
+        <div class="flex flex-col gap-1">
+          <label class="text-sm font-medium text-gray-700 font-Kantumruy"> Description </label>
+
+          <textarea
+            v-model="announStore.formData.description"
+            rows="3"
+            placeholder="Write announcement details..."
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition"
+            :class="announStore.isErrorMessage.description ? 'border-red-400' : ''"
+          ></textarea>
+          <span class="text-red-500 text-xs font-Kantumruy">{{
+            announStore.isErrorMessage.description
+          }}</span>
+        </div>
+
+        <!-- status -->
+        <div class="flex flex-col gap-1">
+          <label class="text-sm font-medium text-gray-700 font-Kantumruy"> Status </label>
+
+          <select
+            v-model="announStore.formData.status"
+            class="w-full px-3 font-Kantumruy py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition dark:bg-black1 dark:text-white"
           >
-            Save
+            <option class="dark:bg-black1 dark:text-slate-700" value="public">Public</option>
+            <option class="dark:bg-black1 dark:text-slate-700" value="private">Private</option>
+          </select>
+        </div>
+
+        <!-- Check updated message -->
+        <div
+          v-if="isUnchanged || announStore.isErrorMessage.messageError"
+          class="text-amber-500 text-xs font-Kantumruy"
+        >
+          No changes detected. Please update at least one field before saving.
+        </div>
+
+        <!-- End Check update message -->
+        <!-- footer buttons -->
+        <div class="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-400">
+          <button
+            type="button"
+            @click="handleColse"
+            class="px-5 py-2 dark:text-white dark:hover:text-red-500 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100 transition font-Kantumruy"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            :disabled="announStore.item.isLoading || isUnchanged"
+            class="px-6 py-2 rounded-lg bg-green-600 text-white disabled:bg-gray-400 disabled:cursor-not-allowed"
+          >
+            <span v-if="announStore.item.isLoading">Loading...</span>
+            <span v-else>Save</span>
           </button>
         </div>
-      </div>
+      </form>
     </div>
   </div>
 </template>

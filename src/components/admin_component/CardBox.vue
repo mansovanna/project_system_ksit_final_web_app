@@ -18,6 +18,19 @@ const props = defineProps({
     type: String,
   },
 })
+
+const formatNumber = (num: number) => {
+  if (!num) return '0'
+
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1).replace('.0', '') + 'M'
+  }
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1).replace('.0', '') + 'K'
+  }
+
+  return num
+}
 </script>
 
 <template>
@@ -37,7 +50,7 @@ const props = defineProps({
     <!-- Block info... -->
     <div :class="color ? 'text-white' : 'text-slate-500'">
       <h1 class="font-Kantumruy font-medium text-base">{{ props.title ?? 'Null' }}</h1>
-      <p class="font-Kantumruy font-semibold text-xl">100K</p>
+      <p class="font-Kantumruy font-semibold text-xl">{{ formatNumber(Number(props.value)) }}</p>
     </div>
 
     <!-- Block Style -->

@@ -15,6 +15,7 @@ export { default as CloseIcon } from '@/assets/icons/CloseIconVuiew.vue'
 export { default as ViewIcon } from '@/assets/icons/ViewIconVuew.vue'
 export { default as CheckIcon } from '@/assets/icons/CheckIconVue.vue'
 export { default as UsersIcon } from '@/assets/icons/UsersIconVue.vue'
+export { default as UsersIconOutline } from '@/assets/icons/UserOutlineIcon.vue'
 export { default as WalletIcon } from '@/assets/icons/WalletIconVue.vue'
 export { default as DocumentIcon } from '@/assets/icons/DocumentIconVue.vue'
 export { default as DocumentIconFille } from '@/assets/icons/DocumentIconVueFille.vue'
@@ -37,23 +38,42 @@ export { default as MoneyIconOutlien } from '@/assets/icons/MoneyIconVueOutline.
 export { default as MoneyIconFille } from '@/assets/icons/MoneyIconVueFille.vue'
 export { default as AnnoouncementIconFille } from '@/assets/icons/AnnoouncementIconVueFille.vue'
 export { default as AnnoouncementIconOutline } from '@/assets/icons/AnnoouncementIconVueOutline.vue'
-// export { default as LogoutIcon } from '@/assets/icons/LogoutIconVue.vue';
-// export { default as CloseIcon } from '@/assets/icons/CloseIconVue.vue';
-// export { default as SearchIcon } from '@/assets/icons/SearchIconVue.vue';
-// export { default as ChevronRightIcon } from '@/assets/icons/ChevronRightIconVue.vue';
-// export { default as ChevronLeftIcon } from '@/assets/icons/ChevronLeftIconVue.vue';
-// export { default as BellIcon } from '@/assets/icons/BellIconVue.vue';
-// export { default as NotificationIcon } from '@/assets/icons/NotificationIconVue.vue';
-// export { default as HomeIcon } from '@/assets/icons/HomeIconVue.vue';
-// export { default as DocumentIcon } from '@/assets/icons/DocumentIconVue.vue';
-// export { default as ChartBarIcon } from '@/assets/icons/ChartBarIconVue.vue';
-// export { default as UserIcon } from '@/assets/icons/UserIconVue.vue';
-// export { default as PlusIcon } from '@/assets/icons/PlusIconVue.vue';
-// export { default as TrashIcon } from '@/assets/icons/TrashIconVue.vue';
-// export { default as EditIcon } from '@/assets/icons/EditIconVue.vue';
-// export { default as DownloadIcon } from '@/assets/icons/DownloadIconVue.vue';
-// export { default as UploadIcon } from '@/assets/icons/UploadIconVue.vue';
-// export { default as EyeIcon } from '@/assets/icons/EyeIconVue.vue';
-// export { default as EyeOffIcon } from '@/assets/icons/EyeOffIconVue.vue';
-// export { default as ChevronDownIcon } from '@/assets/icons/ChevronDownIconVue.vue';
-// export { default as ChevronUpIcon } from '@/assets/icons/ChevronUpIconVue.vue';
+export { default as LockFille } from '@/assets/icons/LockIconFilleVue.vue'
+export { default as ViewOutline } from '@/assets/icons/ViewOutlineVue.vue'
+export { default as HomeIcon } from '@/assets/icons/HomeIconVue.vue'
+export { default as HomeIconOutline } from '@/assets/icons/HomeIconOutline.vue'
+export { default as AppIcon } from '@/assets/icons/AppIcon.vue'
+export { default as PolicyIconFill } from '@/assets/icons/PolicyIconFillVue.vue'
+export { default as PolicyIconOutline } from '@/assets/icons/PolicyIconOutlineVue.vue'
+export { default as LogoBakong } from '@/assets/images/logo-bakong.webp'
+export { default as LogoSchool } from '@/assets/images/logo.jpg'
+
+export { default as LogoutIcon } from '@/assets/icons/LogoutViewIcon.vue'
+export { default as UploadIcon } from '@/assets/icons/UploadIconVue.vue'
+export { default as DownloadIcon } from '@/assets/icons/DownloadIconVue.vue'
+export { default as RefreshIcon } from '@/assets/icons/RefreshIconView.vue'
+export { default as EmailIcon } from '@/assets/icons/EmailVueIcon.vue'
+export { default as CallIcon } from '@/assets/icons/CallVueIcon.vue'
+export { default as LocationIcon } from '@/assets/icons/LocationVueIcon.vue'
+export { default as ClassIcon } from '@/assets/icons/ClassVueIcon.vue'
+export { default as SchoolIcon } from '@/assets/icons/School.vue'
+export { default as DateIcon } from '@/assets/icons/DateVueIcon.vue'
+export { default as ClockIcon } from '@/assets/icons/ClockVueIcon.vue'
+export { default as ReloadIcon } from '@/assets/icons/ReloadIconVue.vue'
+export { default as LinkIcon } from '@/assets/icons/LinkIconVue.vue'
+export { default as ImageIcon } from '@/assets/icons/ImageIconVue.vue'
+export { default as NotDataIcon } from '@/assets/svg/Not_data.vue'
+export { default as FolderIcon } from '@/assets/svg/FolderIconVue.vue'
+export { default as AddIcon } from '@/assets/icons/AddIconVue.vue'
+export { default as PolicyIcon } from '@/assets/icons/PolicyIconVue.vue'
+export { default as ComputerIcon } from '@/assets/icons/ComputerIconVue.vue'
+export { default as UnViewIcon } from '@/assets/icons/UnViewIconVue.vue'
+export { default as IdCardIcon } from '@/assets/icons/IdCardIconVue.vue'
+export { default as BankIconVueFille } from '@/assets/icons/BankIconVueFille.vue'
+export { default as BankIconVueOutline } from '@/assets/icons/BankIconVueOutline.vue'
+export { default as PaymentIcon } from '@/assets/icons/PaymentIconVue.vue'
+export { default as PaymentIconFille } from '@/assets/icons/PaymentIconVueFille.vue'
+export { default as DateIconFille } from '@/assets/icons/DateIconVueFille.vue'
+
+export { default as FaceBookIcon } from '@/assets/icons/FacebookIcon.vue'
+export { default as NotDataSVGICON } from '@/assets/svg/NotData.svg'

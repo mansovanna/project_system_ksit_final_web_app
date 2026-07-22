@@ -1,19 +1,119 @@
+<!-- eslint-disable vue/valid-v-model -->
 <!-- eslint-disable vue/multi-word-component-names -->
 <script setup lang="ts">
 import AdminLayouts from '@/layouts/AdminLayouts.vue'
-
 import FormCreate from './FormCreate.vue'
 
 import { useStaffStore } from '@/stores/staffStore'
 import { ArrowSmallUpIcon, ArrowBackIcon, CloseIcon, CameraIcon, LockIcon } from '@/stores/Icons'
-import { ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useAvatar } from '@/composables/useAvatar'
 
+import LoadingShap from '@/widgets/LoadingShap.vue'
+
+const avatar = useAvatar()
 const staffStore = useStaffStore()
 
-const isShowResetPassword = ref()
+const route = useRoute()
+const router = useRouter()
 
 const resetPassword = () => {
-  isShowResetPassword.value = !isShowResetPassword.value
+  staffStore.isShowResetPassword = !staffStore.isShowResetPassword
+}
+
+const formData = ref({
+  first_name: '',
+  last_name: '',
+  user_name: '',
+  email: '',
+  bio: '',
+  role: '',
+  phone_number: '',
+  status: '',
+})
+onMounted(() => {
+  if (route.params.id) {
+    staffStore.get_staff_by_id(Number(route.params.id))
+  } else {
+    router.back()
+  }
+})
+//------------------------------------------------------------------------------
+watch(
+  () => staffStore.staff_info,
+  (s) => {
+    if (!s) return
+    formData.value = {
+      first_name: s.first_name || '',
+      last_name: s.last_name || '',
+      user_name: s.user_name || '',
+      email: s.email || '',
+      bio: s.bio || '',
+      role: s.role || '',
+      phone_number: s.phone_number || '',
+      status: s.status || '',
+    }
+  },
+  { immediate: true },
+)
+//--------------------------------------------------------------------------------
+
+const submitResetPassword = () => {
+  staffStore.isMessageError.password = ''
+
+  if (!staffStore.formData.password) {
+    staffStore.isMessageError.password = 'Password is required'
+    return
+  }
+
+  if (staffStore.formData.password.length < 6) {
+    staffStore.isMessageError.password = 'Password must be at least 6 characters'
+    return
+  }
+
+  // Call API to reset password
+  staffStore.reset_password(Number(route.params.id), staffStore.formData.password)
+}
+
+const submitUpdateProfile = () => {
+  // Call API to update profile
+  staffStore.update_staff(Number(route.params.id), formData.value)
+}
+
+const preview = ref<string | null>(null)
+const uploadProgress = ref(0)
+const isUploading = ref(false)
+
+const check_select_file = (e: Event) => {
+  const input = e.target as HTMLInputElement
+  if (!input.files?.length) return
+
+  const file = input.files[0]
+
+  if (!file) return
+
+  // Show preview instantly
+  if (file) {
+    preview.value = URL.createObjectURL(file)
+  }
+
+  // Start upload
+  isUploading.value = true
+  uploadProgress.value = 0
+
+  if (file.size > 2 * 1024 * 1024) {
+    alert('Image must be less than 2MB')
+    return
+  }
+
+  staffStore.update_profile_image(Number(route.params.id), file, (percent) => {
+    uploadProgress.value = percent
+    if (percent === 100) {
+      // optional: hide overlay a bit later
+      setTimeout(() => (isUploading.value = false), 500)
+    }
+  })
 }
 </script>
 <template>
@@ -21,9 +121,12 @@ const resetPassword = () => {
   <div
     class="fixed w-full h-screen flex justify-center items-center bg-black/30 z-50"
     @click="resetPassword"
-    v-if="isShowResetPassword"
+    v-if="staffStore.isShowResetPassword"
   >
-    <div class="w-full max-w-1/3 bg-white p-6 rounded-md shadow-2xl relative" @click.stop>
+    <div
+      class="w-full max-w-1/3 bg-white dark:bg-slate-600 p-6 rounded-md shadow-2xl relative"
+      @click.stop
+    >
       <div class="absolute right-2 top-2">
         <button
           class="p-1 bg-red-500 text-white rounded-full hover:bg-red-400 cursor-pointer"
@@ -32,25 +135,30 @@ const resetPassword = () => {
           <component :is="CloseIcon" />
         </button>
       </div>
-      <p class="font-Kantumruy text-red-500">Reset Password</p>
-      <div class="mt-2 flex relative">
-        <input
-          type="text"
-          class="w-full p-2 bg-slate-100 rounded focus:outline-0 focus:ring-blue-400 focus:ring-2 font-Kantumruy"
-          placeholder="Create New Password"
-        />
-        <button
-          class="font-Kantumruy px-4 bg-blue-600 text-white rounded-r absolute top-0 bottom-0 right-0 hover:bg-blue-500 cursor-pointer focus:ring-2 focus:ring-blue-400"
-        >
-          Save
-        </button>
-      </div>
+      <p class="font-Kantumruy text-red-500 dark:text-red-400">Reset Password</p>
+      <form @submit.prevent="submitResetPassword">
+        <div class="mt-2 flex relative">
+          <input
+            type="text"
+            v-model="staffStore.formData.password"
+            class="w-full p-2 bg-slate-100 dark:bg-gray-700 rounded focus:outline-0 focus:ring-blue-400 focus:ring-2 font-Kantumruy"
+            placeholder="Create New Password"
+          />
+          <button
+            class="font-Kantumruy px-4 bg-blue-600 text-white rounded-r absolute top-0 bottom-0 right-0 hover:bg-blue-500 cursor-pointer focus:ring-2 focus:ring-blue-400"
+          >
+            <span v-if="staffStore.isLoadingCreate" class="w-10">Loadin...</span>
+            <span v-else>Save</span>
+          </button>
+        </div>
+      </form>
+      <span class="text-xs text-red-500">{{ staffStore.isMessageError.password }}</span>
     </div>
   </div>
   <!-- End Block Reset password for staff by admin -->
 
   <FormCreate v-if="staffStore.isShowCreate" />
-  <AdminLayouts title="Dashboard">
+  <AdminLayouts>
     <div class="p-4">
       <!-- Add your admin home content here -->
       <div class="w-full p-4 border border-slate-300 bg-white dark:bg-slate-800 rounded-xl">
@@ -74,25 +182,68 @@ const resetPassword = () => {
           </button>
         </div>
         <hr class="text-slate-300 my-2" />
+
         <!-- ---------------------------------------------------- -->
-        <div class="w-full flex justify-between gap-2 mt-4">
+        <LoadingShap v-if="staffStore.isLoading" />
+        <!-- ---------------------------------------------------- -->
+
+        <div v-else class="w-full flex justify-between gap-2 mt-4">
           <!--  -->
           <div class="w-1/2 flex flex-col justify-start items-start">
             <div class="relative">
-              <img
-                class="w-40 h-40 border-3 border-slate-400 rounded-full object-center object-cover"
-                src="https://plus.unsplash.com/premium_photo-1689568126014-06fea9d5d341?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8cHJvZmlsZXxlbnwwfHwwfHx8MA%3D%3D"
-                alt=""
-              />
-              <button
-                class="bg-blue-600 text-white rounded-full w-9 h-9 flex justify-center items-center absolute bottom-0 right-5 border-3 border-white hover:bg-blue-500 cursor-pointer"
+              <div class="relative w-40 h-40">
+                <!-- Avatar image -->
+                <img
+                  :src="
+                    preview
+                      ? preview
+                      : staffStore.staff_info?.profile_photo_path
+                        ? staffStore.staff_info.profile_photo_url
+                        : avatar.textToImage(staffStore.staff_info?.user_name ?? 'User')
+                  "
+                  alt="profile"
+                  class="w-40 h-40 rounded-full object-cover border-2 border-white ring-2 ring-blue-600"
+                />
+
+                <!-- Upload overlay -->
+                <div
+                  v-if="isUploading"
+                  class="absolute inset-0 bg-black/50 rounded-full flex flex-col items-center justify-center text-white"
+                >
+                  <span class="text-sm font-bold">{{ uploadProgress }}%</span>
+                </div>
+              </div>
+
+              <!-- Optional progress bar -->
+              <div v-if="isUploading" class="w-40 mt-2">
+                <div class="h-2 bg-slate-200 rounded overflow-hidden">
+                  <div
+                    class="h-full bg-blue-600 transition-all duration-200"
+                    :style="{ width: uploadProgress + '%' }"
+                  ></div>
+                </div>
+              </div>
+
+              <!-- File input -->
+              <label
+                for="file-input"
+                class="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full w-9 h-9 flex justify-center items-center cursor-pointer border-2 border-white hover:bg-blue-500"
               >
+                <input
+                  type="file"
+                  id="file-input"
+                  class="hidden"
+                  accept="image/*"
+                  @change="check_select_file"
+                />
                 <component :is="CameraIcon" />
-              </button>
+              </label>
             </div>
             <div class="mt-4">
-              <p class="font-Kantumruy font-medium">Sovanna Dara</p>
-              <p class="font-Kantumruy text-slate-400 text-xs">sovannadara@gmail.com</p>
+              <p class="font-Kantumruy font-medium">{{ staffStore.staff_info?.user_name }}</p>
+              <p class="font-Kantumruy text-slate-400 text-xs">
+                {{ staffStore.staff_info?.email }}
+              </p>
               <!-- Block status -->
               <div class="mt-6 flex flex-col justify-start items-start gap-2">
                 <button
@@ -102,12 +253,6 @@ const resetPassword = () => {
                   <component :is="LockIcon" />
                   <span class="font-Kantumruy">Reset Password</span>
                 </button>
-                <!-- <button
-                  class="flex justify-start items-center gap-1.5 cursor-pointer text-red-600 text-base hover:underline"
-                >
-                  <component :is="UserFillIcon" />
-                  <span class="font-Kantumruy">Block</span>
-                </button> -->
               </div>
             </div>
           </div>
@@ -121,8 +266,8 @@ const resetPassword = () => {
                 <div class="mt-0.5">
                   <input
                     type="text"
+                    v-model="formData.first_name"
                     class="bg-slate-300/20 p-2 font-Kantumruy font-medium focus:outline-none focus:ring-1 focus:ring-blue-500 rounded w-full"
-                    value="Sovann"
                   />
                 </div>
               </div>
@@ -132,7 +277,7 @@ const resetPassword = () => {
                   <input
                     type="text"
                     class="bg-slate-300/20 p-2 font-Kantumruy font-medium focus:outline-none focus:ring-1 focus:ring-blue-500 rounded w-full"
-                    value="Dara"
+                    v-model="formData.last_name"
                   />
                 </div>
               </div>
@@ -142,7 +287,7 @@ const resetPassword = () => {
                   <input
                     type="text"
                     class="bg-slate-300/20 p-2 font-Kantumruy font-medium focus:outline-none focus:ring-1 focus:ring-blue-500 rounded w-full"
-                    value="Sovanna Dara"
+                    v-model="formData.user_name"
                   />
                 </div>
               </div>
@@ -152,7 +297,7 @@ const resetPassword = () => {
                   <input
                     type="text"
                     class="bg-slate-300/20 p-2 font-Kantumruy font-medium focus:outline-none focus:ring-1 focus:ring-blue-500 rounded w-full"
-                    value="+855 969009524"
+                    v-model="formData.phone_number"
                   />
                 </div>
               </div>
@@ -164,21 +309,43 @@ const resetPassword = () => {
                 <input
                   type="text"
                   class="bg-slate-300/20 p-2 font-Kantumruy font-medium focus:outline-none focus:ring-1 focus:ring-blue-500 rounded w-full"
-                  value="sovannadara@gmail.com"
+                  v-model="formData.email"
                 />
               </div>
             </div>
 
-            <div class="mt-2">
-              <span class="text-xs font-Kantumruy text-slate-400">Role</span>
-              <div class="mt-0.5">
-                <select
-                  name="role"
-                  id=""
-                  class="w-1/2 bg-slate-100 p-2 rounded font-Kantumruy font-medium text-slate-500"
-                >
-                  <option value="staff">Staff</option>
-                </select>
+            <div class="flex gap-4 w-full">
+              <div class="mt-2 w-full">
+                <span class="text-xs font-Kantumruy text-slate-400">Role</span>
+                <div class="mt-0.5">
+                  <select
+                    name="role"
+                    id=""
+                    class="w-full bg-slate-100 dark:bg-gray-600 dark:text-white p-2 rounded font-Kantumruy capitalize font-medium text-slate-500"
+                    v-model="formData.role"
+                  >
+                    <option value="staff">Staff</option>
+                    <option value="admin">Admin</option>
+                    <option value="user">Student</option>
+                  </select>
+                </div>
+              </div>
+              <!--  -->
+              <div class="mt-2 w-full">
+                <span class="text-xs font-Kantumruy text-slate-400">Status</span>
+                <div class="mt-0.5 w-full">
+                  <select
+                    name="role"
+                    id=""
+                    class="w-full bg-slate-100 p-2 dark:bg-gray-600 dark:text-white rounded font-Kantumruy capitalize font-medium text-slate-500"
+                    v-model="formData.status"
+                  >
+                    <option value="active">Active</option>
+                    <option value="blocked">Blocked</option>
+                    <option value="complete">complete</option>
+                    <option value="pending">Pending</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -188,17 +355,18 @@ const resetPassword = () => {
                 <textarea
                   id=""
                   class="bg-slate-300/20 p-2 font-Kantumruy font-medium focus:outline-none focus:ring-1 focus:ring-blue-500 rounded w-full"
-                >
-I'm Staff Manager</textarea
-                >
+                  v-model="formData.bio"
+                ></textarea>
               </div>
             </div>
 
             <div class="w-full flex justify-end itens-center py-2 mt-6">
               <button
+                @click="submitUpdateProfile"
                 class="px-6 py-2 text-white rounded-md font-Kantumruy bg-blue-700 hover:bg-blue-600 cursor-pointer"
               >
-                <span>Save</span>
+                <span v-if="staffStore.isLoadingUpdate" class="font-Kantumruy">Loading...!</span>
+                <span v-else class="font-Kantumruy">Save</span>
               </button>
             </div>
           </div>

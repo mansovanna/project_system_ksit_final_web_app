@@ -1,6 +1,5 @@
 /* @import url('https://fonts.googleapis.com/css2?family=Asap:ital,wght@0,100..900;1,100..900&family=Kantumruy+Pro:ital,wght@0,100..700;1,100..700&family=Moul&family=Noto+Serif+Khmer:wght@100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto+Slab:wght@100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap'); */
-
-@import url('https://fonts.googleapis.com/css2?family=Afacad:ital,wght@0,400..700;1,400..700&family=Hanuman:wght@100..900&family=Kantumruy+Pro:ital,wght@0,100..700;1,100..700&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Afacad:ital,wght@0,400..700;1,400..700&family=Hanuman:wght@100..900&family=Kantumruy+Pro:ital,wght@0,100..700;1,100..700&family=Moul&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 @import 'tailwindcss';
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -13,6 +12,8 @@
   --font-hanuman: 'Hanuman', serif;
   --font-open-sans: 'Open Sans', sans-serif;
   --font-poppins: 'Poppins', sans-serif;
+  --font-noto-serif: 'Noto Serif Khmer', serif;
+  --font-moul: 'Moul', serif;
 }
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -84,4 +85,70 @@
 }
 .btn-danger {
   @apply px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700;
+}
+
+.input {
+  @apply w-full p-3 rounded-md bg-slate-50 outline-none focus:ring-2 focus:ring-green-600;
+}
+.error {
+  @apply text-xs text-red-500;
+}
+
+@apply px-4 py-3 text-sm text-gray-800 dark:text-gray-200
+         border-t border-gray-100 dark:border-gray-700
+         cursor-pointer active:bg-gray-100 dark:active:bg-gray-700;
+
+.input {
+  @apply w-full p-2 border rounded
+  border-slate-300 dark:border-slate-600
+  dark:bg-slate-700 dark:text-white
+  focus:outline-none focus:ring-2 focus:ring-green-500;
+}
+
+.font-noto {
+  font-family: 'Noto Serif Khmer', serif;
+}
+.font-moul {
+  font-family: 'Moul', serif;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.scroll-x::-webkit-scrollbar {
+  display: none;
+}
+.scroll-y::-webkit-scrollbar {
+  display: none;
+}
+
+.stripe-bg {
+  background-image: repeating-linear-gradient(
+    140deg,
+    rgba(255, 255, 255, 0.491) 0px,
+    rgba(255, 255, 255, 0.491) 1px,
+    transparent 1px,
+    transparent 10px
+  );
+}
+.stripe-bg-2 {
+  background-image: repeating-linear-gradient(
+    -140deg,
+    rgba(255, 255, 255, 0.491) 0px,
+    rgba(255, 255, 255, 0.491) 1px,
+    transparent 1px,
+    transparent 10px
+  );
 }

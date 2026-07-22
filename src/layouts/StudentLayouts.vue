@@ -1,48 +1,29 @@
-<template>
-  <div class="w-full h-screen overflow-auto bg-slate-200 dark:bg-dark relative">
-    <header class="w-full bg-dark p-4">
-      <!-- <title>KSIT-Dormatery</title> -->
-    </header>
-    <!-- Block headers -->
-    <nav class="w-full sticky top-0 z-10 shadow-md">
-      <div class="w-full bg-white flex justify-between items-center p-4">
-        <div class="flex justify-start items-center gap-2">
-          <img
-            class="w-12 h-12 rounded-full object-center object-cover border border-gray-300 dark:border-dark"
-            src="https://png.pngtree.com/png-vector/20230828/ourmid/pngtree-school-school-houses-flat-flat-icon-vector-illustration-diagram-png-image_6996436.png"
-            alt=""
-          />
-          <!--  -->
-          <div>
-            <h1 class="font-Kantumruy font-bold text-slate-700">KSIT-Dormatery</h1>
-            <p class="text-xs font-Kantumruy text-slate-500">
-              System Management for KSIT-Dormatery
-            </p>
-          </div>
-        </div>
-        <div class="flex justify-end items-center gap-6">
-          <!--  -->
-          <ul class="font-Kantumruy flex justify-center items-center gap-6 text-slate-600">
-            <li>Home</li>
-            <li>Policy</li>
-            <li>Staff</li>
-            <li>Leaves</li>
-            <li>Staff</li>
-            <li>About</li>
-            <li>Contact</li>
-          </ul>
+<script setup lang="ts">
+import NavBar from '@/components/students_component/StudentNavBar.vue'
+import SideBar from '@/components/students_component/StudentSidebar.vue'
+// import { useAppStore } from '@/stores/app'
 
-          <!--  -->
-          <div>
-            <button
-              class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors font-Kantumruy"
-            >
-              Login
-            </button>
-          </div>
-        </div>
-      </div>
-    </nav>
-    <slot />
+// const appStore = useAppStore()
+</script>
+
+<!-- ----------------------------------------------------------------------------------- -->
+<template>
+  <div class="flex w-full max-h-screen relative">
+    <SideBar class="max-lg:fixed duration-400 ease-in-out max-lg:-left-full z-50 max-lg:top-0" />
+    <!-- :class="appStore.isMenuApp ? 'left-0' : ''" -->
+    <!-- overlay -->
+    <!-- <div
+      class="fixed max-lg:flex hidden w-full h-screen z-40 top-0 duration-200 ease-in-out bg-dark/50"
+      :class="appStore.isMenuApp ? 'opacity-100' : 'opacity-0 pointer-events-none'"
+      @click="appStore.toggleApp()"
+    ></div> -->
+    <!-- End overlay -->
+    <div class="w-full flex-1 flex flex-col min-h-screen overflow-y-auto">
+      <NavBar class="sticky top-0 right-0 z-30 max-lg:-top-16" />
+
+      <main class="w-full">
+        <slot></slot>
+      </main>
+    </div>
   </div>
 </template>
