@@ -120,10 +120,24 @@ onMounted(() => {
     showConfirmModal.value = true
   }, 1000)
 })
+
+const isLoad = ref(false)
+
+const downLoadQR = (qr: any) => {
+  const url = typeof qr === 'string' ? qr : qr.url
+  const link = document.createElement('a')
+  link.href = url
+  link.download = url.split('/').pop() || 'qr-code.png'
+  link.target = '_blank'
+  link.rel = 'noopener'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
 </script>
 
 <template>
-  <!-- Message Notification -->
+  <!-- Message Notification -->ា
   <Transition
     enter-active-class="transition-all duration-500 ease-out"
     enter-from-class="translate-x-full opacity-0"
@@ -284,10 +298,14 @@ onMounted(() => {
           </div>
 
           <div class="absolute bottom-4 right-4">
+            <!-- Block  download QR Image -->
             <button
+              @click="
+                downLoadQR(paymentStoreFromAdmin.data_qr?.data?.[isSelectedBanks]?.qr_image_url)
+              "
               class="p-3 cursor-pointer bg-green-600 text-white rounded-full shadow-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex justify-center items-center"
             >
-              <DownloadIcon v-if="true" class="w-6 h-6" />
+              <DownloadIcon v-if="!isLoad" class="w-6 h-6" />
 
               <div v-else class="w-6 h-6 flex justify-center items-center">
                 <component :is="Loading" />

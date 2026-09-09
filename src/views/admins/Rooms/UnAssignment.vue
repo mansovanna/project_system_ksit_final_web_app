@@ -1,6 +1,6 @@
 <!-- eslint-disable @typescript-eslint/no-unused-vars -->
 <script setup lang="ts">
-import { ArrowSmallUpIcon, CheckIcon, SearchIcon, ViewIcon } from '@/stores/Icons'
+import { AddIcon, ArrowSmallUpIcon, CheckIcon, SearchIcon, ViewIcon } from '@/stores/Icons'
 import { useRoomStore } from '@/stores/room_store'
 import { computed, ref, watch } from 'vue'
 import { api as viewerApi } from 'v-viewer'
@@ -201,7 +201,7 @@ const pages = computed(() => {
                   <div class="flex justify-center items-center gap-2">
                     <button
                       value="View"
-                      @click="$router.push({ name: 'users-profile', params: { id: 1 } })"
+                      @click="$router.push({ name: 'users-profile', params: { id: item.id } })"
                       class="w-10 h-10 flex justify-center items-center rounded-full bg-slate-100 dark:bg-slate-600 hover:bg-warning hover:text-white text-warning cursor-pointer ease-in-out duration-200"
                     >
                       <component :is="ViewIcon" />
@@ -223,13 +223,13 @@ const pages = computed(() => {
                             roomStore.isLoadingAny.isID == item.id &&
                             roomStore.isLoadingAny.isLoading
                           "
-                          class="w-6 h-6 flex justify-center items-center"
+                          class="w-5 h-5 flex justify-center items-center"
                         >
                           <loading />
                         </div>
 
                         <span v-else>
-                          <component :is="CheckIcon" />
+                          <component :is="AddIcon" />
                         </span>
                       </button>
                     </div>
@@ -336,7 +336,7 @@ const pages = computed(() => {
                   <div class="flex justify-center items-center gap-2">
                     <button
                       value="View"
-                      @click="$router.push({ name: 'users-profile', params: { id: 1 } })"
+                      @click="$router.push({ name: 'users-profile', params: { id: item.id } })"
                       class="w-10 h-10 flex justify-center items-center rounded-full bg-slate-100 dark:bg-slate-600 hover:bg-warning hover:text-white text-warning cursor-pointer ease-in-out duration-200"
                     >
                       <component :is="ViewIcon" />
@@ -358,7 +358,7 @@ const pages = computed(() => {
                       </div>
 
                       <span v-else>
-                        <component :is="CheckIcon" />
+                        <component :is="AddIcon" />
                       </span>
                     </button>
                     <!-- @click="alert_messageg_check(1, 'delete')" -->

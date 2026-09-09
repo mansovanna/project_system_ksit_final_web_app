@@ -105,9 +105,12 @@ const pages = computed(() => {
 
 <template>
   <StudentLayouts>
-    <div class="p-4 flex max-lg:flex-col gap-4 items-start">
+    <div class="p-4 flex flex-col gap-4 items-start">
+      <div class="w-1/3 w-full max-lg:hidden sticky top-20">
+        <RequestLeaveForm />
+      </div>
       <!-- LIST (LEFT) -->
-      <div class="w-2/3 max-lg:w-full flex flex-col gap-4">
+      <div class="w-2/3 w-full flex flex-col gap-4">
         <!-- FILTER TABS -->
         <div
           class="grid max-md:grid-cols-4 max-xl:grid-cols-6 grid-cols-10 gap-2 sticky top-0 z-10 overflow-x-auto"
@@ -432,9 +435,6 @@ const pages = computed(() => {
       </div>
 
       <!-- FORM (RIGHT) -->
-      <div class="w-1/3 max-lg:w-full max-lg:hidden sticky top-20">
-        <RequestLeaveForm />
-      </div>
     </div>
   </StudentLayouts>
 </template>

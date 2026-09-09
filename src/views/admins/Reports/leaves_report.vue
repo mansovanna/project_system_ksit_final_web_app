@@ -1,3 +1,4 @@
+<!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script setup lang="ts">
 import { useAvatar } from '@/composables/useAvatar'
 import AdminLayouts from '@/layouts/AdminLayouts.vue'
@@ -11,8 +12,11 @@ import {
   ViewIcon,
 } from '@/stores/Icons'
 import { useLeaveStore } from '@/stores/leave_store'
-import { computed, onMounted, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import Loading from '@/widgets/Loading.vue'
+import Leave_pdf from './report/leave_pdf.vue'
+import ExcelJS from 'exceljs'
+import { saveAs } from 'file-saver'
 
 const reportStore = useLeaveStore()
 const avatar = useAvatar()
@@ -128,9 +132,116 @@ const reload = () => {
     reportStore.page,
   )
 }
+
+// --------------
+
+//-------------
+
+const data_export = ref([])
+
+const isExportPDF = ref(false)
+
+const handleExportPDF = (data: any) => {
+  console.log(data)
+  if (!data) return
+  data_export.value = data
+  isExportPDF.value = true
+}
+
+const exportExcel = async () => {
+  const data = reportStore.data?.data.data || []
+
+  if (!data.length) {
+    alert('No data to export')
+    return
+  }
+
+  const workbook = new ExcelJS.Workbook()
+  const worksheet = workbook.addWorksheet('Leave Report')
+
+  worksheet.pageSetup = {
+    orientation: 'landscape',
+    fitToPage: true,
+    fitToWidth: 1,
+    fitToHeight: 0,
+  }
+
+  worksheet.columns = [
+    { header: 'ល.រ', key: 'no', width: 8 },
+    { header: 'លេខកាតសិស្ស', key: 'id_card', width: 18 },
+    { header: 'នាមត្រកូល', key: 'first_name', width: 25 },
+    { header: 'នាមខ្លួន', key: 'last_name', width: 20 },
+    { header: 'កម្រិត / ជំនាញ', key: 'level_major', width: 22 },
+    { header: 'ថ្ងៃចាប់ផ្តើម', key: 'start_date', width: 15 },
+    { header: 'ថ្ងៃត្រឡប់', key: 'end_date', width: 15 },
+    { header: 'មូលហេតុ', key: 'reason', width: 30 },
+    { header: 'ស្ថានភាព', key: 'status', width: 20 },
+  ]
+
+  const totalColumns = worksheet.columns.length
+
+  // Header style
+  for (let col = 1; col <= totalColumns; col++) {
+    const cell = worksheet.getRow(1).getCell(col)
+    cell.font = { bold: true, size: 13, name: 'Battambang', color: { argb: 'FFFFFFFF' } }
+    cell.alignment = { horizontal: 'center', vertical: 'middle' }
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF305496' } }
+    cell.border = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' },
+    }
+  }
+  worksheet.getRow(1).height = 25
+
+  // Data rows
+  data.forEach((item: any, index: number) => {
+    const level = item.user?.info?.level ?? 'Null'
+    const major = item.user?.info?.major ?? 'Null'
+
+    const row = worksheet.addRow({
+      no: index + 1,
+      id_card: item.user?.info?.id_card ?? 'Null',
+      first_name: item.user?.first_name ?? 'Null',
+      last_name: item.user?.last_name ?? 'Null',
+      level_major: `${level} / ${major}`,
+      start_date: item.start_date ?? 'Null',
+      end_date: item.end_date ?? 'Null',
+      reason: item.reason ?? 'Null',
+      status: item.status ?? 'Null',
+    })
+
+    if (index % 2 === 0) {
+      row.eachCell((cell) => {
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } }
+      })
+    }
+
+    row.eachCell((cell) => {
+      cell.font = { name: 'Battambang', size: 12 }
+      cell.alignment = { vertical: 'middle', horizontal: 'center' }
+      cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' },
+      }
+    })
+  })
+
+  worksheet.autoFilter = {
+    from: 'A1',
+    to: String.fromCharCode(64 + totalColumns) + '1',
+  }
+
+  const buffer = await workbook.xlsx.writeBuffer()
+  saveAs(new Blob([buffer]), 'leave_report.xlsx')
+}
 </script>
 
 <template>
+  <Leave_pdf :data="data_export" v-if="isExportPDF" @close="isExportPDF = false" />
   <AdminLayouts>
     <div class="p-4">
       <!-- Add your admin home content here -->
@@ -238,16 +349,18 @@ const reload = () => {
             </button>
             <div class="flex justify-end items-center gap-3">
               <button
+                @click="exportExcel"
                 class="p-2 px-4 bg-green-600 text-white rounded-md hover:bg-green-500 font-Kantumruy flex justify-center items-center gap-2 cursor-pointer"
               >
                 <component :is="CSVIcon" />
                 <span>CSV</span>
               </button>
               <button
+                @click="handleExportPDF(reportStore.data?.data.data)"
                 class="p-2 px-4 bg-warning text-white rounded-md hover:bg-warning/80 font-Kantumruy flex justify-center items-center gap-2 cursor-pointer"
               >
                 <component :is="PrintIcon" />
-                <span>Print</span>
+                <span>PDF</span>
               </button>
             </div>
           </div>

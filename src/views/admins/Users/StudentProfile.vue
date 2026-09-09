@@ -488,7 +488,7 @@ onMounted(async () => {
                       <!-- Avatar -->
                       <div class="relative w-30 h-30 rounded-full">
                         <img
-                          class="w-30 h-30 bg-white rounded-full border-2 border-white ring-4 ring-blue-600"
+                          class="w-30 h-30 bg-white rounded-full object-cover object-center border-2 border-white ring-4 ring-blue-600"
                           :src="photoUrl"
                           :alt="userStore.user_info?.user_name ?? 'Avatar'"
                         />

@@ -1,32 +1,81 @@
 <!-- eslint-disable @typescript-eslint/no-unused-vars -->
+<!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import html2pdf from 'html2pdf.js'
 import { LogoSchool } from '@/stores/Icons'
-import type { User } from '@/models/UserModel'
 import Loading from '@/widgets/Loading.vue'
 
 defineEmits(['close'])
 
 const reportTableRef = ref<HTMLElement | null>(null)
 
+// ================= DATA MODEL =================
+// Matches the shape returned by `reportStore.data?.data.data` in the
+// leave report page (leave_store.getLeaveReports):
+// { id, user: { first_name, last_name, user_name, phone_number, info: {...} }, start_date, end_date, reason, status }
+interface UserInfo {
+  id_card?: string
+  level?: string
+  major?: string
+  year?: string | number
+  phone_parent?: string
+}
+
+interface LeaveUser {
+  first_name?: string
+  last_name?: string
+  user_name?: string
+  phone_number?: string
+  profile_photo_url?: string
+  info?: UserInfo
+}
+
+interface LeaveRow {
+  id?: number | string
+  user: LeaveUser
+  start_date?: string
+  end_date?: string
+  reason?: string
+  status?: 'approved' | 'pending' | 'rejected' | string
+}
+
 const props = defineProps<{
-  data: User[]
+  data: LeaveRow[]
 }>()
 
 const place = 'កំពង់ស្ពឺ'
-const day = '...'
 const month = '........'
 const year = '២០២...'
-const signerRole = 'នាយកវិទ្យាស្ថាន'
-const signerName = '...........'
 
-// const totalAmount = computed(() =>
-//   payments.value.reduce((sum, item) => sum + Number(item.amount), 0),
-// )
+function formatDate(date: string | null | undefined) {
+  if (!date) return 'N/A'
+  return new Date(date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+  })
+}
 
-function formatCurrency(value: number) {
-  return '$ ' + Number(value).toFixed(2)
+// Same logic as calculateTotalDays() in the leave report page
+function calculateTotalDays(startDate?: string, endDate?: string, inclusive = true) {
+  if (!startDate || !endDate) return 0
+
+  const start = new Date(startDate)
+  const end = new Date(endDate)
+
+  if (end < start) return 0
+
+  const diffTime = end.getTime() - start.getTime()
+  const diffDays = diffTime / (1000 * 60 * 60 * 24)
+
+  return inclusive ? diffDays + 1 : diffDays
+}
+
+function statusText(status?: string) {
+  if (status === 'approved') return 'អនុម័ត'
+  if (status === 'rejected') return 'បដិសេធ'
+  return 'កំពុងរង់ចាំ'
 }
 
 const isLoading = ref(false)
@@ -39,7 +88,7 @@ async function downloadPdf() {
 
   const options = {
     margin: 0,
-    filename: 'payment-report-landscape.pdf',
+    filename: 'leave-report-landscape.pdf',
     image: { type: 'jpeg' as const, quality: 1 },
     html2canvas: {
       scale: 2,
@@ -55,7 +104,6 @@ async function downloadPdf() {
       format: 'a4',
       orientation: 'landscape' as const,
     },
-    // ប្តូរត្រង់នេះ
     pagebreak: { mode: ['css'], avoid: ['tr', 'tfoot', '.footer'] },
   }
   isLoading.value = true
@@ -146,75 +194,72 @@ async function downloadPdf() {
 
         <!-- ================= TITLE ================= -->
         <div class="doc-title-block">
-          <h2 style="font-family: 'Moul', serif">បញ្ជីរាយនាមសិស្សនិស្សិស្នាក់នៅអន្តេវាសិកដ្ឋាន</h2>
+          <h2 style="font-family: 'Moul', serif">បញ្ជីច្បាប់ឈប់សម្រាក (Leave Report)</h2>
         </div>
 
         <!-- ================= TABLE ================= -->
-        <table class="payment-table">
+        <table class="leave-table">
           <colgroup>
-            <col style="width: 5%" />
-            <col style="width: 20%" />
-            <col style="width: 20%" />
-            <col style="width: 8%" />
-            <col style="width: 12%" />
-            <col style="width: 14%" />
-            <col style="width: 18%" />
-            <col style="width: 5%" />
+            <col style="width: 4%" />
+            <col style="width: 13%" />
+            <col style="width: 17%" />
+            <col style="width: 13%" />
+            <col style="width: 11%" />
+            <col style="width: 11%" />
+            <col style="width: 7%" />
+            <col style="width: 15%" />
+            <col style="width: 9%" />
           </colgroup>
 
           <thead>
             <tr>
-              <th>
-                <div class="cell">ល.រ</div>
-              </th>
+              <th><div class="cell">ល.រ</div></th>
+              <th><div class="cell">លេខកាតសិស្ស</div></th>
               <th><div class="cell">ឈ្មោះសិស្ស</div></th>
-              <th><div class="cell">ឈ្មោះជាអង់គ្លេស</div></th>
-              <th><div class="cell">ប្រភេទ</div></th>
-              <th><div class="cell">ថ្ងៃខែឆ្នាំកំណើត</div></th>
-              <th><div class="cell">លេខទូរស័ព្ទ</div></th>
-              <th><div class="cell">ជំនាញ</div></th>
-              <th><div class="cell">ឆ្នាំទី</div></th>
+              <th><div class="cell">កម្រិត / ជំនាញ</div></th>
+              <th><div class="cell">ថ្ងៃចាប់ផ្តើម</div></th>
+              <th><div class="cell">ថ្ងៃបញ្ចប់</div></th>
+              <th><div class="cell right">ចំនួនថ្ងៃ</div></th>
+              <th><div class="cell">មូលហេតុ</div></th>
+              <th><div class="cell">សភាពភាព</div></th>
             </tr>
           </thead>
 
           <tbody>
-            <tr v-for="(item, index) in data" :key="index">
+            <tr v-for="(item, index) in data" :key="item.id ?? index">
               <td>
                 <div class="cell">{{ index + 1 }}</div>
               </td>
               <td>
-                <div class="cell">{{ item.first_name }} {{ item.last_name }}</div>
+                <div class="cell">{{ item.user?.info?.id_card ?? 'N/A' }}</div>
               </td>
               <td>
-                <div class="cell">{{ item.user_name }}</div>
+                <div class="cell">{{ item.user?.first_name }} {{ item.user?.last_name }}</div>
               </td>
               <td>
-                <div class="cell">{{ item.gender }}</div>
+                <div class="cell">
+                  {{ item.user?.info?.level ?? 'N/A' }} - {{ item.user?.info?.major ?? 'N/A' }}
+                </div>
               </td>
               <td>
-                <div class="cell right">{{ item.info?.date_of_birth }}</div>
+                <div class="cell">{{ formatDate(item.start_date) }}</div>
               </td>
               <td>
-                <div class="cell">{{ item.phone_number }}</div>
+                <div class="cell">{{ formatDate(item.end_date) }}</div>
               </td>
               <td>
-                <div class="cell">{{ item.info?.major }}</div>
+                <div class="cell right">
+                  {{ calculateTotalDays(item.start_date, item.end_date) }}
+                </div>
               </td>
               <td>
-                <div class="cell">{{ item.info?.year }}</div>
+                <div class="cell">{{ item.reason ?? 'N/A' }}</div>
+              </td>
+              <td>
+                <div class="cell">{{ statusText(item.status) }}</div>
               </td>
             </tr>
           </tbody>
-
-          <tfoot v-if="false">
-            <tr>
-              <td colspan="4"><div class="cell right">សរុប</div></td>
-              <td>
-                <div class="cell right">{{ 'formatCurrency(totalAmount)' }}</div>
-              </td>
-              <td colspan="2"><div class="cell"></div></td>
-            </tr>
-          </tfoot>
         </table>
 
         <!-- ================= FOOTER ================= -->
@@ -236,10 +281,6 @@ async function downloadPdf() {
             >
               <p>ហត្ថលេខា</p>
             </div>
-            <!-- <div class="signature-space"></div>
-            <p>{{ signerRole }}</p> -->
-            <!-- <div class="signature-space small"></div> -->
-            <!-- <strong>{{ signerName }}</strong> -->
           </div>
         </footer>
       </div>
@@ -280,55 +321,7 @@ async function downloadPdf() {
   color: #000;
   box-sizing: border-box;
   font-family: 'Khmer OS Battambang', Arial, sans-serif;
-  margin: 0 auto; /* centers only when the viewport is wide enough */
-}
-
-.doc-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.header-left {
-  width: 90px;
-}
-
-.logo {
-  width: 80px;
-}
-
-.header-center {
-  flex: 1;
-  text-align: center;
-}
-
-.header-right {
-  width: 150px;
-  text-align: right;
-}
-
-.kingdom {
-  font-size: 20px;
-  /* font-weight: bold; */
-}
-
-.motto {
-  font-size: 16px;
-}
-
-.institute-name {
-  font-size: 18px;
-  font-weight: bold;
-}
-
-.institute-name-en {
-  font-size: 14px;
-}
-
-.header-line {
-  border: none;
-  border-top: 1px solid #000;
-  margin: 15px 0;
+  margin: 0 auto;
 }
 
 .doc-title-block {
@@ -336,23 +329,31 @@ async function downloadPdf() {
   margin-bottom: 20px;
 }
 
-.payment-table {
+.kingdom {
+  font-size: 20px;
+}
+
+.institute-name-en {
+  font-size: 14px;
+}
+
+.leave-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: 13px;
   table-layout: fixed;
 }
 
-.payment-table thead {
-  display: table-header-group; /* repeat header every page */
+.leave-table thead {
+  display: table-header-group;
 }
 
-.payment-table tr {
+.leave-table tr {
   break-inside: avoid;
   page-break-inside: avoid;
 }
 
-.payment-table tfoot {
+.leave-table tfoot {
   break-inside: avoid;
   page-break-inside: avoid;
 }
@@ -362,25 +363,21 @@ async function downloadPdf() {
   page-break-inside: avoid;
 }
 
-.payment-table th,
-.payment-table td {
+.leave-table th,
+.leave-table td {
   border: 1px solid #808080;
-  /* padding: 8px; */
   text-align: center;
   vertical-align: middle;
   line-height: 1.4;
   padding: 0;
   height: 40px;
 }
-.cell-p {
-  padding-bottom: 60px!;
-}
+
 .cell {
   display: flex;
   align-items: center;
   justify-content: center;
   height: 100%;
-  /* padding: 10px 10px 20px 0px; */
   padding-bottom: 20px;
   padding-top: 8px;
   padding-right: 8px;
@@ -392,7 +389,7 @@ async function downloadPdf() {
   justify-content: flex-end;
 }
 
-.payment-table th {
+.leave-table th {
   background: #eee;
 }
 
@@ -408,19 +405,6 @@ tfoot td {
   margin-top: 40px;
   display: flex;
   justify-content: flex-end;
-}
-
-.signature {
-  width: 250px;
-  text-align: center;
-}
-
-.signature-space {
-  height: 60px;
-}
-
-.signature-space.small {
-  height: 40px;
 }
 
 @media print {

@@ -607,7 +607,7 @@ const handleExportPDF = (data: any) => {
                   resportStore.search,
                   resportStore.start_date,
                   resportStore.end_date,
-                  resportStore.status,
+                  resportStore.status_options,
                   resportStore.per_page,
                   resportStore.page,
                 )
@@ -635,7 +635,7 @@ const handleExportPDF = (data: any) => {
                   resportStore.search,
                   resportStore.start_date,
                   resportStore.end_date,
-                  resportStore.status,
+                  resportStore.status_options,
                   resportStore.per_page,
                   Number(resportStore.data!.data.current_page) - 1,
                 )
@@ -662,7 +662,7 @@ const handleExportPDF = (data: any) => {
                     resportStore.search,
                     resportStore.start_date,
                     resportStore.end_date,
-                    resportStore.status,
+                    resportStore.status_options,
                     resportStore.per_page,
                     Number(page),
                   )
@@ -688,7 +688,7 @@ const handleExportPDF = (data: any) => {
                   resportStore.search,
                   resportStore.start_date,
                   resportStore.end_date,
-                  resportStore.status,
+                  resportStore.status_options,
                   resportStore.per_page,
                   Number(resportStore.data!.data.current_page) + 1,
                 )

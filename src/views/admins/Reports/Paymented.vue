@@ -15,11 +15,14 @@ import {
   ViewIcon,
 } from '@/stores/Icons'
 import { useReportPayment } from '@/stores/report_payment_store'
-import export_serivce from '@/utils/export_serivce'
+
 import Loading from '@/widgets/Loading.vue'
 import { computed, onMounted, ref, watch } from 'vue'
 import { api as viewerApi } from 'v-viewer'
 import 'viewerjs/dist/viewer.css'
+import ExcelJS from 'exceljs'
+import { saveAs } from 'file-saver'
+import Payment_pdf from './report/payment_pdf.vue'
 
 const payStore = useReportPayment()
 const avatar = useAvatar()
@@ -93,36 +96,6 @@ const mergedList = computed(() => {
   return [...unpaid, ...pending, ...paid]
 })
 
-// const mergedList = computed(() => {
-//   const paid = (payStore.data?.paid_list ?? []).map((p: any) => ({
-//     ...p.user,
-//     payment: p,
-//     _tab: 'paid',
-//   }))
-//   const pending = (payStore.data?.pending_list ?? []).map((p: any) => ({
-//     ...p.user,
-//     payment: p,
-//     _tab: 'pending_review',
-//   }))
-//   const unpaid = (payStore.data?.unpaid_list ?? []).map((u: any) => ({ ...u, _tab: 'pending' }))
-
-//   let result: any[] = []
-//   if (payStore.status === 'paid') result = paid
-//   else if (payStore.status === 'pending_review') result = pending
-//   else if (payStore.status === 'pending') result = unpaid
-//   else result = [...unpaid, ...pending, ...paid]
-
-//   // Dedupe by id (keep first occurrence) — safety net for backend duplicates
-//   const seen = new Set()
-//   return result.filter((item) => {
-//     const key = `${item._tab}-${item.id}`
-//     if (seen.has(key)) return false
-//     seen.add(key)
-//     return true
-//   })
-// })
-
-// Search បន្ថែម client-side (ព្រោះ list ខ្លីទាំងអស់ស្រាប់ត្រូវ filter ក្នុង browser)
 const filteredList = computed(() => {
   if (!payStore.search) return mergedList.value
   const kw = payStore.search.toLowerCase()
@@ -178,9 +151,113 @@ async function openImage(url: string) {
     },
   })
 }
+
+const exportExcel = async () => {
+  const data = filteredList.value || []
+
+  if (!data.length) {
+    alert('No data to export')
+    return
+  }
+
+  const workbook = new ExcelJS.Workbook()
+  const worksheet = workbook.addWorksheet('Student Report')
+
+  worksheet.pageSetup = {
+    orientation: 'landscape',
+    fitToPage: true,
+    fitToWidth: 1,
+    fitToHeight: 0,
+  }
+
+  worksheet.columns = [
+    { header: 'ល.រ', key: 'no', width: 8 },
+    { header: 'លេខកាតសិស្ស', key: 'id_card', width: 18 },
+    { header: 'នាមត្រកូល', key: 'first_name', width: 25 },
+    { header: 'នាមខ្លួន', key: 'last_name', width: 20 },
+    { header: 'ឈ្មោះជាភាសាអង់គ្លេស', key: 'user_name', width: 20 },
+    { header: 'លេខទូរស័ព្ទ', key: 'phone', width: 18 },
+    { header: 'កម្រិតសិក្សារ', key: 'level', width: 15 },
+    { header: 'ជំនាញ', key: 'major', width: 20 },
+    { header: 'ឆ្នាំ', key: 'year', width: 10 },
+    { header: 'ចំនួនទឹកប្រាក់', key: 'amount', width: 30 },
+  ]
+
+  const totalColumns = worksheet.columns.length
+
+  // Header style
+  for (let col = 1; col <= totalColumns; col++) {
+    const cell = worksheet.getRow(1).getCell(col)
+    cell.font = { bold: true, size: 13, name: 'Battambang', color: { argb: 'FFFFFFFF' } }
+    cell.alignment = { horizontal: 'center', vertical: 'middle' }
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF305496' } }
+    cell.border = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' },
+    }
+  }
+  worksheet.getRow(1).height = 25
+
+  // Data rows
+  data.forEach((item: any, index: number) => {
+    const row = worksheet.addRow({
+      no: index + 1,
+      id_card: item.info?.id_card ?? 'Null',
+      first_name: item.first_name ?? 'Null',
+      last_name: item.last_name ?? 'Null',
+      user_name: item.user_name ?? 'Null',
+      phone: item.phone_number ?? 'Null',
+      level: item.info?.level ?? 'Null',
+      major: item.info?.major ?? 'Null',
+      year: item.info?.year ?? 'Null',
+      amount: item.payment?.amount
+        ? `${item.payment?.is_currency === 'usd' ? '$' : '៛'} ${item.payment.amount}`
+        : 'Null',
+    })
+
+    if (index % 2 === 0) {
+      row.eachCell((cell) => {
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } }
+      })
+    }
+
+    row.eachCell((cell) => {
+      cell.font = { name: 'Battambang', size: 12 }
+      cell.alignment = { vertical: 'middle', horizontal: 'center' }
+      cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' },
+      }
+    })
+  })
+
+  worksheet.autoFilter = {
+    from: 'A1',
+    to: String.fromCharCode(64 + totalColumns) + '1',
+  }
+
+  const buffer = await workbook.xlsx.writeBuffer()
+  saveAs(new Blob([buffer]), 'student_report.xlsx')
+}
+
+const data_export = ref([])
+
+const isExportPDF = ref(false)
+
+const handleExportPDF = (data: any) => {
+  console.log(data)
+  if (!data) return
+  data_export.value = data
+  isExportPDF.value = true
+}
 </script>
 
 <template>
+  <Payment_pdf :data="data_export" v-if="isExportPDF" @close="isExportPDF = false" />
   <AdminLayouts>
     <div class="p-4 text-nowrap">
       <div
@@ -283,14 +360,14 @@ async function openImage(url: string) {
             </button>
             <div class="flex justify-end items-center gap-3">
               <button
-                @click="() => export_serivce.export_student_report(filteredList)"
+                @click="exportExcel"
                 class="p-1.5 px-3 bg-green-600 text-white rounded-md hover:bg-green-500 font-Kantumruy flex justify-center items-center gap-2 cursor-pointer"
               >
                 CSV
                 <component :is="CSVIcon" />
               </button>
               <button
-                @click="() => export_serivce.export_payment_pdf('payment-report-table')"
+                @click="handleExportPDF(filteredList)"
                 class="p-1.5 px-3 bg-warning text-white rounded-md hover:bg-warning/80 font-Kantumruy flex justify-center items-center gap-2 cursor-pointer"
               >
                 PDF

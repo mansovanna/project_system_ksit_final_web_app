@@ -1,17 +1,16 @@
 <script setup lang="ts">
 import logo from '@/assets/images/logo.jpg'
 import { useReportStudent } from '@/stores/report_student_store'
-// import export_serivce from '@/utils/export_serivce'
+import export_service from '@/utils/export_service2'
 import { ref } from 'vue'
 
 const reportStudents = useReportStudent()
+const isLoading = ref(false)
 
-const isLoading = ref()
-
-const hadleExport = async () => {
+const handleExport = async () => {
   isLoading.value = true
   try {
-    // await export_serivce.export_student_report()
+    await export_service.export_student_report('pdf', 'student-report.pdf')
   } catch (error) {
     console.log(error)
   } finally {
@@ -24,7 +23,7 @@ const hadleExport = async () => {
     <!-- Header Action -->
     <div class="mb-2 flex justify-end">
       <button
-        @click="hadleExport"
+        @click="handleExport"
         class="rounded-lg px-5 py-2 text-white transition"
         style="background: #059669"
       >
@@ -141,67 +140,89 @@ const hadleExport = async () => {
 .pdf-page {
   width: 297mm;
   min-height: 210mm;
-  padding: 10mm;
+  padding: 15mm 12mm;
   background: #ffffff;
   color: #000000;
-
   box-sizing: border-box;
-
   font-family: 'Kantumruy Pro', sans-serif;
-
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
 }
 
+/* ===== HEADER ===== */
 .header {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #1e3a8a;
+  margin-bottom: 20px;
+}
+
+.block-logo {
+  display: flex;
+  flex-direction: row; /* logo + text side by side, not stacked */
   align-items: center;
-  margin-bottom: 40px;
+  gap: 14px;
+}
+
+.block-logo img.logo {
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+}
+
+.block-logo > div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* left align, not center */
+  gap: 2px;
 }
 
 .school-name {
-  font-size: 16px;
-  /* font-weight: bold; */
-  font-family: Khmer OS Muol Light;
-
+  font-size: 15px;
+  font-family: 'Khmer OS Muol Light', sans-serif;
   color: #1e3a8a;
-
-  margin-bottom: 5px;
+  line-height: 1.4;
 }
 
 .school-en {
-  font-size: 14px;
+  font-size: 12px;
   font-family: 'Times New Roman', Times, serif;
   color: #64748b;
+  letter-spacing: 0.3px;
 }
 
 .kingdom {
   text-align: center;
-  font-family: Khmer os Moul;
-  font-size: 16px;
-  /* font-weight: bold; */
-
-  line-height: 1.8;
+  font-family: 'Khmer OS Muol', sans-serif;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #1e3a8a;
+  padding-top: 4px;
 }
 
+/* ===== TITLE ===== */
 .title-section {
   text-align: center;
-  font-family: Khmer os Moul;
-  margin-bottom: 5px;
+  margin: 10px 0 20px;
 }
 
 .title-section h2 {
-  font-size: 16px;
-  /* font-weight: bold; */
+  font-size: 18px;
+  font-family: 'Khmer OS Muol', sans-serif;
   color: #1e3a8a;
+  display: inline-block;
+  padding-bottom: 6px;
+  border-bottom: 3px solid #059669;
 }
 
+/* ===== TABLE ===== */
 table {
   width: 100%;
-
   border-collapse: collapse;
-
-  margin-top: 20px;
+  margin-top: 10px;
+  font-size: 13px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
 }
 
 thead {
@@ -209,38 +230,50 @@ thead {
   color: white;
 }
 
-th,
+th {
+  padding: 10px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
 td {
-  border: 1px solid #cbd5e1;
-
-  padding: 12px;
-
+  border: 1px solid #e2e8f0;
+  padding: 8px;
   text-align: center;
+  font-size: 13px;
+  color: #1e293b;
+}
 
-  font-size: 14px;
+th {
+  border: 1px solid #1e3a8a;
 }
 
 tbody tr:nth-child(even) {
   background: #f8fafc;
 }
 
+tbody tr:hover {
+  background: #eef2ff;
+}
+
 .grade {
-  font-weight: bold;
+  font-weight: 600;
+  color: #1e3a8a;
 }
 
 .text-left {
   text-align: left;
+  padding-left: 14px;
 }
 
+/* ===== FOOTER ===== */
 .footer {
-  margin-top: 80px;
-
+  margin-top: 60px;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-
-  font-size: 13px;
-
+  font-size: 12px;
   color: #475569;
 }
 
@@ -249,14 +282,14 @@ tbody tr:nth-child(even) {
 }
 
 .signature p {
-  margin-bottom: 80px;
+  margin-bottom: 60px;
 }
 
 .signature h3 {
-  font-size: 18px;
-  font-weight: bold;
-
-  color: #000000;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+  font-family: 'Khmer OS Muol Light', sans-serif;
 }
 
 @media print {

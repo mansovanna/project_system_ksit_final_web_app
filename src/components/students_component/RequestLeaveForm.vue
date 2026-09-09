@@ -137,64 +137,77 @@ onMounted(() => {
     class="w-full bg-white dark:bg-slate-700/40 rounded-lg p-4 border border-green-700 dark:border-green-700 flex flex-col sticky top-19 max-h-[90vh] overflow-y-auto"
   >
     <h2 class="text-lg font-Kantumruy font-semibold text-slate-700 mb-4 dark:text-white">
-      ស្នើសុំច្បាប់ឈប់
+      ស្នើសុំច្បាប់ឈប់ {{ leavesStore.isLoadings }}
     </h2>
 
-    <form class="space-y-4" @submit.prevent="submit">
+    <form
+      class="gap-4 justify-center flex flex-col lg:flex-row lg:items-end w-full"
+      @submit.prevent="submit"
+    >
       <!-- Date Range -->
-      <div class="flex gap-2 items-start mt-2 max-md:flex-col">
-        <div class="flex flex-col w-1/2 max-lg:w-full">
-          <label class="block text-slate-600 dark:text-white mb-1 font-Kantumruy">
-            ចន្លោះថ្ងៃ
-          </label>
-          <input
-            v-model="leavesStore.formData.start_date"
-            type="date"
-            class="w-full border font-Kantumruy rounded-lg px-3 py-4 text-sm focus:ring-emerald-500 focus:outline-none focus:ring-2 placeholder:dark:text-slate-300 dark:text-white dark:bg-slate-800"
-            :class="leavesStore.errorMessage.start_date ? 'border-red-500' : 'border-slate-200'"
-          />
-          <span class="text-red-600 text-xs mt-2 font-Kantumruy">{{
-            leavesStore.errorMessage.start_date
-          }}</span>
+      <div class="flex gap-4 w-full items-end justify-end text-nowrap flex-col lg:flex-row">
+        <div class="flex gap-2 items-start mt-2 lg:mt-0 max-md:flex-col flex-row lg:w-2/5 w-full">
+          <div class="flex flex-col w-1/2 max-lg:w-full">
+            <label class="block text-slate-600 dark:text-white mb-1 font-Kantumruy">
+              ចន្លោះថ្ងៃ
+            </label>
+            <input
+              v-model="leavesStore.formData.start_date"
+              type="date"
+              class="w-full border font-Kantumruy rounded-lg px-3 py-2.5 text-sm focus:ring-emerald-500 focus:outline-none focus:ring-2 placeholder:dark:text-slate-300 dark:text-white dark:bg-slate-800"
+              :class="leavesStore.errorMessage.start_date ? 'border-red-500' : 'border-slate-200'"
+            />
+            <span
+              v-if="leavesStore.errorMessage.start_date"
+              class="text-red-600 text-xs mt-2 font-Kantumruy"
+              >{{ leavesStore.errorMessage.start_date }}</span
+            >
+          </div>
+
+          <div class="flex flex-col w-1/2 max-lg:w-full">
+            <label class="block text-slate-600 dark:text-white mb-1 font-Kantumruy">
+              ថ្ងៃមកវិញ
+            </label>
+            <input
+              v-model="leavesStore.formData.end_date"
+              type="date"
+              class="w-full border font-Kantumruy rounded-lg px-3 py-2.5 text-sm focus:ring-emerald-500 focus:outline-none focus:ring-2 placeholder:dark:text-slate-300 dark:text-white dark:bg-slate-800"
+              :class="leavesStore.errorMessage.end_date ? 'border-red-500' : 'border-slate-200'"
+            />
+            <span
+              v-if="leavesStore.errorMessage.end_date"
+              class="text-red-600 text-xs mt-2 font-Kantumruy"
+              >{{ leavesStore.errorMessage.end_date }}</span
+            >
+          </div>
         </div>
 
-        <div class="flex flex-col w-1/2 max-lg:w-full">
-          <label class="block text-slate-600 dark:text-white mb-1 font-Kantumruy">
-            ថ្ងៃមកវិញ
+        <!-- Reason -->
+        <div class="w-full flex flex-col items-start">
+          <label class="block text-slate-600 dark:text-white mb-1 font-Kantumruy text-base">
+            មូលហេតុ
           </label>
-          <input
-            v-model="leavesStore.formData.end_date"
-            type="date"
-            class="w-full border font-Kantumruy rounded-lg px-3 py-4 text-sm focus:ring-emerald-500 focus:outline-none focus:ring-2 placeholder:dark:text-slate-300 dark:text-white dark:bg-slate-800"
-            :class="leavesStore.errorMessage.end_date ? 'border-red-500' : 'border-slate-200'"
-          />
-          <span class="text-red-600 text-xs mt-2 font-Kantumruy">{{
-            leavesStore.errorMessage.end_date
-          }}</span>
+          <textarea
+            rows="1"
+            v-model="leavesStore.formData.reason"
+            placeholder="សូមបញ្ចូលមូលហេតុ..."
+            class="w-full border font-Kantumruy rounded-lg px-3 py-2.5 text-sm focus:ring-emerald-500 focus:outline-none focus:ring-2 placeholder:dark:text-slate-300 dark:text-white dark:bg-slate-800"
+            :class="leavesStore.errorMessage.reason ? 'border-red-500' : 'border-slate-200'"
+          ></textarea>
+
+          <span
+            v-if="leavesStore.errorMessage.reason"
+            class="text-red-600 text-xs font-Kantumruy mt-2"
+            >{{ leavesStore.errorMessage.reason }}</span
+          >
         </div>
-      </div>
-
-      <!-- Reason -->
-      <div>
-        <label class="block text-slate-600 dark:text-white mb-1 font-Kantumruy"> មូលហេតុ </label>
-        <textarea
-          rows="3"
-          v-model="leavesStore.formData.reason"
-          placeholder="សូមបញ្ចូលមូលហេតុ..."
-          class="w-full border font-Kantumruy rounded-lg px-3 py-4 text-sm focus:ring-emerald-500 focus:outline-none focus:ring-2 placeholder:dark:text-slate-300 dark:text-white dark:bg-slate-800"
-          :class="leavesStore.errorMessage.reason ? 'border-red-500' : 'border-slate-200'"
-        ></textarea>
-
-        <span class="text-red-600 text-xs font-Kantumruy mt-2">{{
-          leavesStore.errorMessage.reason
-        }}</span>
       </div>
 
       <!-- Submit -->
       <button
         type="submit"
         :disabled="leavesStore.isLoadings"
-        class="w-full py-3 font-Kantumruy cursor-pointer rounded-lg text-white bg-emerald-700 hover:bg-emerald-800 transition"
+        class="w-full lg:w-1/4 py-2 font-Kantumruy cursor-pointer rounded-lg text-white bg-emerald-700 hover:bg-emerald-800 transition"
       >
         <div v-if="leavesStore.isLoadings" class="flex justify-center items-center gap-2">
           <div class="w-6 h-6"><loading /></div>

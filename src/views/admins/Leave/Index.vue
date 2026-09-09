@@ -132,7 +132,7 @@ async function openImage(url: string) {
 }
 </script>
 <template>
-  <AdminLayouts title="User Register New">
+  <AdminLayouts>
     <!-- Block Alert Select status -->
 
     <div

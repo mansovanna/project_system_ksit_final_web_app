@@ -88,10 +88,7 @@
           </div>
 
           <!-- Footer -->
-          <div
-            v-if="false"
-            class="border-t border-slate-200 dark:border-slate-700 px-5 py-3 flex gap-3"
-          >
+          <div class="border-t border-slate-200 dark:border-slate-700 px-5 py-3 flex gap-3">
             <button
               @click="handleCancel"
               class="flex-1 py-2.5 text-sm font-Kantumruy text-slate-500 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition"

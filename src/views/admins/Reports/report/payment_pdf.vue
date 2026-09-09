@@ -1,33 +1,81 @@
 <!-- eslint-disable @typescript-eslint/no-unused-vars -->
+<!-- eslint-disable @typescript-eslint/no-explicit-any -->
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import html2pdf from 'html2pdf.js'
 import { LogoSchool } from '@/stores/Icons'
-import type { User } from '@/models/UserModel'
 import Loading from '@/widgets/Loading.vue'
 
 defineEmits(['close'])
 
 const reportTableRef = ref<HTMLElement | null>(null)
 
+// ================= DATA MODEL =================
+// Matches the shape produced by `mergedList` in the payment report page:
+// { ...user, payment: {...}, _tab: 'paid' | 'pending_review' | 'pending' }
+interface PaymentInfo {
+  amount?: number | string
+  is_currency?: 'usd' | 'khr' | string
+  method?: string
+  created_at?: string
+  image_url?: string
+}
+
+interface UserInfo {
+  id_card?: string
+  level?: string
+  major?: string
+  year?: string | number
+}
+
+interface PaymentRow {
+  first_name?: string
+  last_name?: string
+  user_name?: string
+  phone_number?: string
+  info?: UserInfo
+  payment?: PaymentInfo
+  _tab?: 'paid' | 'pending_review' | 'pending'
+}
+
 const props = defineProps<{
-  data: User[]
+  data: PaymentRow[]
 }>()
 
 const place = 'កំពង់ស្ពឺ'
-const day = '...'
 const month = '........'
 const year = '២០២...'
-const signerRole = 'នាយកវិទ្យាស្ថាន'
-const signerName = '...........'
 
-// const totalAmount = computed(() =>
-//   payments.value.reduce((sum, item) => sum + Number(item.amount), 0),
-// )
-
-function formatCurrency(value: number) {
-  return '$ ' + Number(value).toFixed(2)
+function formatDate(date: string | null | undefined) {
+  if (!date) return 'N/A'
+  return new Date(date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+  })
 }
+
+function currencySymbol(is_currency?: string) {
+  return is_currency === 'usd' ? '$' : '៛'
+}
+
+function formatAmount(item: PaymentRow) {
+  if (!item.payment?.amount) return 'N/A'
+  return `${currencySymbol(item.payment.is_currency)} ${item.payment.amount}`
+}
+
+function statusText(tab?: string) {
+  if (tab === 'paid') return 'បានបង់'
+  if (tab === 'pending_review') return 'កំពុងរង់ចាំ'
+  return 'មិនទាន់បង់'
+}
+
+const totalAmount = computed(() =>
+  props.data.reduce((sum, item) => {
+    const amt = Number(item.payment?.amount ?? 0)
+    return sum + (isNaN(amt) ? 0 : amt)
+  }, 0),
+)
 
 const isLoading = ref(false)
 async function downloadPdf() {
@@ -55,7 +103,6 @@ async function downloadPdf() {
       format: 'a4',
       orientation: 'landscape' as const,
     },
-    // ប្តូរត្រង់នេះ
     pagebreak: { mode: ['css'], avoid: ['tr', 'tfoot', '.footer'] },
   }
   isLoading.value = true
@@ -146,34 +193,36 @@ async function downloadPdf() {
 
         <!-- ================= TITLE ================= -->
         <div class="doc-title-block">
-          <h2 style="font-family: 'Moul', serif">បញ្ជីរាយនាមសិស្សនិស្សិស្នាក់នៅអន្តេវាសិកដ្ឋាន</h2>
+          <h2 style="font-family: 'Moul', serif">បញ្ជីទូទាត់ប្រាក់ (Payment Report)</h2>
         </div>
 
         <!-- ================= TABLE ================= -->
         <table class="payment-table">
           <colgroup>
-            <col style="width: 5%" />
-            <col style="width: 20%" />
-            <col style="width: 20%" />
-            <col style="width: 8%" />
+            <col style="width: 4%" />
             <col style="width: 12%" />
-            <col style="width: 14%" />
-            <col style="width: 18%" />
-            <col style="width: 5%" />
+            <col style="width: 16%" />
+            <col style="width: 15%" />
+            <col style="width: 12%" />
+            <col style="width: 10%" />
+            <col style="width: 6%" />
+            <col style="width: 12%" />
+            <col style="width: 8%" />
+            <col style="width: 11%" />
           </colgroup>
 
           <thead>
             <tr>
-              <th>
-                <div class="cell">ល.រ</div>
-              </th>
+              <th><div class="cell">ល.រ</div></th>
+              <th><div class="cell">លេខកាតសិស្ស</div></th>
               <th><div class="cell">ឈ្មោះសិស្ស</div></th>
               <th><div class="cell">ឈ្មោះជាអង់គ្លេស</div></th>
-              <th><div class="cell">ប្រភេទ</div></th>
-              <th><div class="cell">ថ្ងៃខែឆ្នាំកំណើត</div></th>
               <th><div class="cell">លេខទូរស័ព្ទ</div></th>
               <th><div class="cell">ជំនាញ</div></th>
-              <th><div class="cell">ឆ្នាំទី</div></th>
+              <th><div class="cell">ឆ្នាំ</div></th>
+              <th><div class="cell right">ចំនួនទឹកប្រាក់</div></th>
+              <th><div class="cell">ថ្ងៃបង់</div></th>
+              <th><div class="cell">សភាពភាព</div></th>
             </tr>
           </thead>
 
@@ -183,34 +232,40 @@ async function downloadPdf() {
                 <div class="cell">{{ index + 1 }}</div>
               </td>
               <td>
+                <div class="cell">{{ item.info?.id_card ?? 'N/A' }}</div>
+              </td>
+              <td>
                 <div class="cell">{{ item.first_name }} {{ item.last_name }}</div>
               </td>
               <td>
                 <div class="cell">{{ item.user_name }}</div>
               </td>
               <td>
-                <div class="cell">{{ item.gender }}</div>
+                <div class="cell">{{ item.phone_number ?? 'N/A' }}</div>
               </td>
               <td>
-                <div class="cell right">{{ item.info?.date_of_birth }}</div>
+                <div class="cell">{{ item.info?.major ?? 'N/A' }}</div>
               </td>
               <td>
-                <div class="cell">{{ item.phone_number }}</div>
+                <div class="cell">{{ item.info?.year ?? 'N/A' }}</div>
               </td>
               <td>
-                <div class="cell">{{ item.info?.major }}</div>
+                <div class="cell right">{{ formatAmount(item) }}</div>
               </td>
               <td>
-                <div class="cell">{{ item.info?.year }}</div>
+                <div class="cell">{{ formatDate(item.payment?.created_at) }}</div>
+              </td>
+              <td>
+                <div class="cell">{{ statusText(item._tab) }}</div>
               </td>
             </tr>
           </tbody>
 
-          <tfoot v-if="false">
+          <tfoot>
             <tr>
-              <td colspan="4"><div class="cell right">សរុប</div></td>
+              <td colspan="7"><div class="cell right">សរុប</div></td>
               <td>
-                <div class="cell right">{{ 'formatCurrency(totalAmount)' }}</div>
+                <div class="cell right">{{ '$ ' + totalAmount.toFixed(2) }}</div>
               </td>
               <td colspan="2"><div class="cell"></div></td>
             </tr>
@@ -236,10 +291,6 @@ async function downloadPdf() {
             >
               <p>ហត្ថលេខា</p>
             </div>
-            <!-- <div class="signature-space"></div>
-            <p>{{ signerRole }}</p> -->
-            <!-- <div class="signature-space small"></div> -->
-            <!-- <strong>{{ signerName }}</strong> -->
           </div>
         </footer>
       </div>
@@ -280,55 +331,7 @@ async function downloadPdf() {
   color: #000;
   box-sizing: border-box;
   font-family: 'Khmer OS Battambang', Arial, sans-serif;
-  margin: 0 auto; /* centers only when the viewport is wide enough */
-}
-
-.doc-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.header-left {
-  width: 90px;
-}
-
-.logo {
-  width: 80px;
-}
-
-.header-center {
-  flex: 1;
-  text-align: center;
-}
-
-.header-right {
-  width: 150px;
-  text-align: right;
-}
-
-.kingdom {
-  font-size: 20px;
-  /* font-weight: bold; */
-}
-
-.motto {
-  font-size: 16px;
-}
-
-.institute-name {
-  font-size: 18px;
-  font-weight: bold;
-}
-
-.institute-name-en {
-  font-size: 14px;
-}
-
-.header-line {
-  border: none;
-  border-top: 1px solid #000;
-  margin: 15px 0;
+  margin: 0 auto;
 }
 
 .doc-title-block {
@@ -336,15 +339,23 @@ async function downloadPdf() {
   margin-bottom: 20px;
 }
 
+.kingdom {
+  font-size: 20px;
+}
+
+.institute-name-en {
+  font-size: 14px;
+}
+
 .payment-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: 13px;
   table-layout: fixed;
 }
 
 .payment-table thead {
-  display: table-header-group; /* repeat header every page */
+  display: table-header-group;
 }
 
 .payment-table tr {
@@ -365,22 +376,18 @@ async function downloadPdf() {
 .payment-table th,
 .payment-table td {
   border: 1px solid #808080;
-  /* padding: 8px; */
   text-align: center;
   vertical-align: middle;
   line-height: 1.4;
   padding: 0;
   height: 40px;
 }
-.cell-p {
-  padding-bottom: 60px!;
-}
+
 .cell {
   display: flex;
   align-items: center;
   justify-content: center;
   height: 100%;
-  /* padding: 10px 10px 20px 0px; */
   padding-bottom: 20px;
   padding-top: 8px;
   padding-right: 8px;
@@ -408,19 +415,6 @@ tfoot td {
   margin-top: 40px;
   display: flex;
   justify-content: flex-end;
-}
-
-.signature {
-  width: 250px;
-  text-align: center;
-}
-
-.signature-space {
-  height: 60px;
-}
-
-.signature-space.small {
-  height: 40px;
 }
 
 @media print {

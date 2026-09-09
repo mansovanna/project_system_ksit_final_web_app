@@ -305,7 +305,7 @@ async function openImage(url: string) {
                   <div class="flex justify-center items-center gap-2">
                     <button
                       value="View"
-                      @click="$router.push({ name: 'users-profile', params: { id: 1 } })"
+                      @click="$router.push({ name: 'users-profile', params: { id: item.user.id } })"
                       class="w-10 h-10 flex justify-center items-center rounded-full bg-slate-100 dark:bg-slate-600 hover:bg-warning hover:text-white text-warning cursor-pointer ease-in-out duration-200"
                     >
                       <component :is="ViewIcon" />

@@ -27,7 +27,6 @@ export const useLeaveStore = defineStore('leave-store', {
       try {
         const res = await leave_provider.getLeaves(search, per_page, page)
         if (res.status == 200 || res.status == 201) {
-          console.log(res.data.data.data)
           this.data = res.data
         }
       } catch (error: any) {
